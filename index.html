@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ELB NY</title>
+<meta name="description" content="ELB NY: indicador para TradingView que traza la entrada, el stop loss y el take profit 1:3 en la sesión de Nueva York.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: terminal de operaciones nocturno. Rejilla asimétrica, paneles con esquina recortada tipo ticket de orden y cinta de cotización. */
+:root {
+  color-scheme: dark;
+  --void: #0b0809;
+  --panel: #140d10;
+  --panel-2: #1b1216;
+  --line: #2d1d23;
+  --line-2: #42262f;
+  --fg: #f4eeef;
+  --muted: #ab9aa0;
+  --dim: #75646b;
+  --red: #e5162e;
+  --red-hot: #ff4458;
+  --red-deep: #6e0914;
+  --tp: #22ab94;
+  --sl: #f23645;
+  --entry: #3a73ff;
+
+  --f-mark: "Orbitron", "Chakra Petch", "Segoe UI", sans-serif;
+  --f-display: "Chakra Petch", "Barlow", "Segoe UI", sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --gutter: clamp(16px, 4vw, 40px);
+  --maxw: 1180px;
+  --notch: 14px;
+  --nav-h: 64px;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--void); scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+body {
+  background: var(--void);
+  color: var(--fg);
+  font-family: var(--f-body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body::after { /* CRT scanlines over the whole page, very faint */
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 60;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, 0.16) 2px 3px);
+  mix-blend-mode: multiply;
+}
+a { color: inherit; }
+img, video { max-width: 100%; display: block; }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+p { margin: 0; }
+::selection { background: var(--red); color: #fff; }
+:focus-visible { outline: 2px solid var(--red-hot); outline-offset: 3px; border-radius: 4px; }
+
+.wrap { max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gutter); }
+.mono { font-family: var(--f-mono); }
+.num { font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- buttons ---------- */
+.btn {
+  --b: var(--line-2);
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 50px; padding: 0 24px;
+  font: 700 16px/1 var(--f-display); letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none;
+  color: var(--fg); background: transparent; border: 1px solid var(--b); cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease, color .18s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn-red {
+  border: 0; color: #fff;
+  background: linear-gradient(180deg, #ff3b51 0%, var(--red) 46%, #a30d1f 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 30px -12px rgba(229, 22, 46, 0.9);
+}
+.btn-red:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 14px 40px -10px rgba(255, 68, 88, 1); }
+.btn-ghost:hover { background: rgba(229, 22, 46, 0.1); --b: var(--red); }
+.btn-sm { min-height: 40px; padding: 0 16px; font-size: 13px; }
+.btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.btn svg { width: 18px; height: 18px; }
+
+/* ---------- top progress + nav ---------- */
+.progress { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; height: 2px; width: 0; z-index: 80; background: linear-gradient(90deg, var(--red-deep), var(--red-hot)); box-shadow: 0 0 12px var(--red); }
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 70;
+  background: rgba(11, 8, 9, 0.72); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid transparent; transition: border-color .2s ease, background-color .2s ease;
+}
+.nav.scrolled { border-bottom-color: var(--line); background: rgba(11, 8, 9, 0.9); }
+.nav-in { height: var(--nav-h); display: flex; align-items: center; gap: 24px; }
+.brand { display: inline-flex; align-items: baseline; gap: 8px; text-decoration: none; }
+.mark { font-family: var(--f-mark); font-weight: 900; font-size: 26px; letter-spacing: 0.04em; color: var(--red); text-shadow: 0 0 18px rgba(229, 22, 46, 0.55); }
+.brand-ny { font-family: var(--f-mark); font-weight: 800; font-size: 13px; letter-spacing: 0.35em; color: var(--fg); }
+.nav-links { display: flex; gap: 22px; margin-left: 12px; }
+.nav-links a { white-space: nowrap; font: 600 14px/1 var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 8px 0; position: relative; }
+.nav-links a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 2px; background: var(--red); transition: right .2s ease; }
+.nav-links a:hover { color: var(--fg); }
+.nav-links a:hover::after { right: 0; }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.session { display: inline-flex; align-items: center; gap: 8px; font: 600 12px/1 var(--f-mono); color: var(--muted); padding: 8px 10px; border: 1px solid var(--line); white-space: nowrap; }
+.session .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); }
+.session.open .dot { background: var(--tp); box-shadow: 0 0 0 0 rgba(34, 171, 148, .7); animation: ping 1.8s infinite; }
+.session.open { color: var(--fg); }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(34, 171, 148, .6); } 80%, 100% { box-shadow: 0 0 0 8px rgba(34, 171, 148, 0); } }
+.menu-btn { display: none; width: 44px; height: 44px; border: 1px solid var(--line-2); background: transparent; color: var(--fg); cursor: pointer; }
+.menu-btn span { display: block; width: 20px; height: 2px; margin: 4px auto; background: currentColor; transition: transform .2s ease, opacity .2s ease; }
+.menu-btn[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.menu-btn[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.menu-btn[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.mobile-menu { border-top: 1px solid var(--line); background: rgba(11, 8, 9, 0.97); }
+.mobile-menu nav { display: grid; padding-block: 12px 20px; }
+.mobile-menu a { font: 700 22px/1 var(--f-display); text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 0; border-bottom: 1px solid var(--line); text-decoration: none; display: flex; justify-content: space-between; }
+.mobile-menu a span { color: var(--red); font: 600 13px/1 var(--f-mono); }
+
+/* ---------- glitch ---------- */
+.glitch { position: relative; display: inline-block; }
+.glitch::before, .glitch::after { content: attr(data-text); position: absolute; inset: 0; opacity: 0; }
+.glitch::before { color: #ff003c; transform: translate(-2px, 0); }
+.glitch::after { color: #00e5ff; transform: translate(2px, 0); }
+.glitch:hover::before, .glitch:hover::after { opacity: .8; animation: glitch-a .9s steps(2) infinite; }
+.glitch:hover::after { animation-name: glitch-b; }
+.glitch.auto::before, .glitch.auto::after { opacity: .85; animation: glitch-burst-a 4.2s steps(1) infinite; }
+.glitch.auto::after { animation-name: glitch-burst-b; }
+@keyframes glitch-burst-a { 0%, 9%, 100% { clip-path: inset(100% 0 0 0); } 2% { clip-path: inset(12% 0 64% 0); transform: translate(-6px, 0); } 4% { clip-path: inset(58% 0 18% 0); transform: translate(4px, 0); } 6% { clip-path: inset(30% 0 46% 0); transform: translate(-3px, 0); } }
+@keyframes glitch-burst-b { 0%, 9%, 100% { clip-path: inset(100% 0 0 0); } 2% { clip-path: inset(66% 0 8% 0); transform: translate(6px, 0); } 4% { clip-path: inset(8% 0 72% 0); transform: translate(-4px, 0); } 6% { clip-path: inset(40% 0 40% 0); transform: translate(3px, 0); } }
+@keyframes glitch-a { 0% { clip-path: inset(10% 0 70% 0); } 25% { clip-path: inset(60% 0 10% 0); } 50% { clip-path: inset(30% 0 50% 0); } 75% { clip-path: inset(80% 0 2% 0); } 100% { clip-path: inset(0 0 90% 0); } }
+@keyframes glitch-b { 0% { clip-path: inset(70% 0 5% 0); } 25% { clip-path: inset(5% 0 75% 0); } 50% { clip-path: inset(45% 0 35% 0); } 75% { clip-path: inset(15% 0 60% 0); } 100% { clip-path: inset(88% 0 0 0); } }
+
+/* ---------- hero ---------- */
+.hero { position: relative; overflow: hidden; padding-block: clamp(36px, 6vw, 80px) 0; isolation: isolate; }
+.hero::before { content: ""; position: absolute; inset: -20% -10% auto; height: 120%; z-index: -2; background: radial-gradient(60% 50% at 70% 35%, rgba(229, 22, 46, 0.22), transparent 70%), radial-gradient(40% 40% at 10% 10%, rgba(110, 9, 20, 0.35), transparent 70%); }
+#bgCandles { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; opacity: .5; -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 95%); mask-image: linear-gradient(to bottom, #000 40%, transparent 95%); }
+.giant {
+  position: absolute; z-index: -1; right: -3vw; top: 4%;
+  font: 900 clamp(150px, 24vw, 330px)/0.8 var(--f-mark); letter-spacing: 0.02em;
+  color: #2a070d; opacity: .9; user-select: none; pointer-events: none;
+  text-shadow: 1px 1px 0 #3a0a12, 2px 2px 0 #34090f, 3px 3px 0 #2e080e, 4px 4px 0 #28070c, 5px 5px 0 #22060a, 6px 6px 0 #1c0509, 7px 7px 0 #160407, 0 0 60px rgba(229, 22, 46, 0.25);
+  -webkit-text-stroke: 1px rgba(255, 68, 88, 0.28);
+  transform: perspective(900px) rotateY(var(--ry, -14deg)) rotateX(var(--rx, 6deg));
+  transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+}
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
+.eyebrow { font: 600 13px/1.4 var(--f-mono); color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; display: flex; gap: 10px; align-items: center; }
+.prompt { color: var(--red); }
+.cursor-blink { display: inline-block; width: 9px; height: 16px; background: var(--red); animation: blink 1s steps(1) infinite; vertical-align: -2px; }
+@keyframes blink { 50% { opacity: 0; } }
+.hero-title { margin-top: 18px; font-size: clamp(44px, 7.4vw, 92px); font-weight: 700; text-transform: uppercase; line-height: 0.95; }
+.hero-title .ln { display: block; }
+.hero-title .accent { color: var(--red); text-shadow: 0 0 40px rgba(229, 22, 46, 0.45); }
+.hero-title .tp { color: var(--tp); }
+.lede { margin-top: 22px; max-width: 34em; font-size: clamp(17px, 1.6vw, 19px); color: #d9cdd0; }
+.hero-cta { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; }
+
+.countdown { margin-top: 30px; display: grid; gap: 10px; max-width: 460px; }
+.countdown-label { font: 600 12px/1.3 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.countdown-label b { color: var(--red-hot); font-weight: 700; }
+.cd-boxes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cd-box { background: var(--panel); border: 1px solid var(--line); padding: 10px 6px 8px; text-align: center; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+.cd-box .n { display: block; font: 700 clamp(22px, 3.2vw, 32px)/1 var(--f-mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.cd-box .u { display: block; margin-top: 6px; font: 600 10px/1 var(--f-mono); letter-spacing: 0.14em; color: var(--dim); text-transform: uppercase; }
+
+.hero-media { position: relative; display: grid; justify-items: center; padding-block: 10px 30px; }
+.phone {
+  position: relative; width: min(300px, 78vw); aspect-ratio: 9 / 19.2; max-width: 100%;
+  border-radius: 44px; padding: 10px; background: linear-gradient(145deg, #2b1a1f, #0d0809 40%, #1f1216);
+  box-shadow: 0 0 0 1px #3d2730, 0 40px 80px -30px rgba(229, 22, 46, 0.6), 0 0 120px -40px rgba(229, 22, 46, 0.7);
+  transform: perspective(1200px) rotateY(var(--pry, -10deg)) rotateX(var(--prx, 4deg));
+  transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+}
+.phone::before { content: ""; position: absolute; top: 18px; left: 50%; width: 90px; height: 24px; transform: translateX(-50%); background: #000; border-radius: 20px; z-index: 2; }
+.phone video { width: 100%; height: 100%; object-fit: cover; border-radius: 34px; background: #000; }
+.sound-btn { position: absolute; z-index: 3; bottom: 26px; left: 50%; transform: translateX(-50%); display: inline-flex; gap: 8px; align-items: center; padding: 9px 14px; font: 700 12px/1 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: rgba(0, 0, 0, 0.72); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 999px; cursor: pointer; backdrop-filter: blur(6px); }
+.sound-btn svg { width: 16px; height: 16px; }
+.float-chip { position: absolute; z-index: 4; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; font: 700 14px/1 var(--f-mono); background: rgba(20, 13, 16, 0.92); border: 1px solid var(--line-2); box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.9); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); animation: bob 5s ease-in-out infinite; }
+.float-chip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.chip-tp { top: 18%; left: -2%; color: var(--tp); } .chip-tp i { background: var(--tp); }
+.chip-sl { top: 48%; right: -4%; color: var(--sl); animation-delay: -1.6s; } .chip-sl i { background: var(--sl); }
+.chip-wr { bottom: 14%; left: 2%; color: var(--fg); animation-delay: -3s; } .chip-wr i { background: var(--entry); }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.tape { margin-top: clamp(30px, 5vw, 56px); border-block: 1px solid var(--line); background: linear-gradient(90deg, rgba(229, 22, 46, 0.12), transparent 30%, transparent 70%, rgba(229, 22, 46, 0.12)); overflow: hidden; }
+.tape-track { display: flex; width: max-content; animation: tape 38s linear infinite; }
+.tape-group { display: flex; }
+.tape-item { display: inline-flex; align-items: center; gap: 12px; padding: 14px 28px; font: 600 14px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.tape-item b { color: var(--fg); font-weight: 700; }
+.tape-item::before { content: "◆"; color: var(--red); font-size: 9px; }
+@keyframes tape { to { transform: translateX(-50%); } }
+
+/* ---------- sections ---------- */
+.sec { padding-block: clamp(64px, 9vw, 120px); position: relative; }
+.sec + .sec { border-top: 1px solid var(--line); }
+.sec-head { display: grid; gap: 14px; max-width: 760px; margin-bottom: clamp(32px, 5vw, 56px); }
+.kicker { font: 600 13px/1 var(--f-mono); color: var(--red); letter-spacing: 0.06em; }
+.sec-head h2 { font-size: clamp(34px, 5vw, 58px); font-weight: 700; text-transform: uppercase; }
+.sec-head p { color: var(--muted); font-size: 18px; max-width: 38em; }
+
+.ticket {
+  position: relative; background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line);
+  clip-path: polygon(var(--notch) 0, 100% 0, 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%, 0 var(--notch));
+}
+.ticket::before { content: ""; position: absolute; top: 0; left: var(--notch); right: 30%; height: 2px; background: linear-gradient(90deg, var(--red), transparent); }
+
+/* ---------- indicators ---------- */
+.ind-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+.ind-card { padding: clamp(22px, 3.4vw, 36px); display: grid; gap: 22px; align-content: start; }
+.ind-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.ind-name { display: flex; align-items: baseline; gap: 12px; }
+.ind-name .mark { font-size: clamp(40px, 6vw, 60px); }
+.ind-name .brand-ny { font-size: 18px; }
+.badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; font: 700 12px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid currentColor; }
+.badge-free { color: var(--tp); background: rgba(34, 171, 148, 0.1); }
+.badge-soon { color: var(--muted); }
+.ind-full { font: 600 14px/1.4 var(--f-mono); color: var(--muted); overflow-wrap: anywhere; }
+.ind-desc { color: #dccfd2; max-width: 40em; }
+.ind-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 220px); gap: 24px; align-items: center; }
+.specs { display: grid; gap: 0; margin: 0; }
+.specs div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 11px 0; border-bottom: 1px dashed var(--line-2); }
+.specs dt { font: 600 12px/1.6 var(--f-mono); color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.specs dd { margin: 0; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 700 12px/1 var(--f-mono); padding: 6px 8px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.03); }
+.mini-chart { width: 100%; height: auto; background: #0d090a; border: 1px solid var(--line); }
+.ind-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.soon-card { padding: clamp(22px, 3.4vw, 36px); display: grid; gap: 16px; align-content: center; text-align: left; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0 10px, transparent 10px 20px), var(--panel); }
+.soon-card h3 { font-size: 28px; text-transform: uppercase; }
+.soon-card p { color: var(--muted); }
+.lock { width: 52px; height: 52px; display: grid; place-items: center; border: 1px solid var(--line-2); color: var(--red); }
+.lock svg { width: 26px; height: 26px; }
+
+/* ---------- how it works ---------- */
+.how-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(24px, 4vw, 48px); align-items: start; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.steps li::before { content: counter(s, decimal-leading-zero); font: 700 22px/1 var(--f-mono); color: var(--red); padding-top: 4px; }
+.steps h3 { font-size: 21px; text-transform: uppercase; margin-bottom: 6px; }
+.steps p { color: var(--muted); }
+.line-key { display: inline-block; width: 22px; height: 0; border-top: 3px dashed; vertical-align: middle; margin-right: 6px; }
+.sim { padding: 16px; display: grid; gap: 12px; }
+.sim-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; border: 1px solid var(--line-2); }
+.seg button { font: 700 13px/1 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 11px 14px; color: var(--muted); background: transparent; border: 0; cursor: pointer; }
+.seg button[aria-pressed="true"] { color: #fff; background: var(--red); }
+.seg button[data-kind="tp"][aria-pressed="true"] { background: #157a6a; }
+.sim canvas { width: 100%; height: clamp(300px, 46vw, 440px); display: block; background: #0d090a; border: 1px solid var(--line); }
+.sim-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; font: 600 12px/1.5 var(--f-mono); color: var(--dim); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; }
+
+/* ---------- results ---------- */
+.res-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+.tv-table { width: 100%; border-collapse: collapse; font-family: var(--f-body); font-size: 17px; background: #131722; }
+.tv-table th { background: #2962ff; color: #fff; font: 700 16px/1 var(--f-display); text-transform: none; padding: 14px 12px; letter-spacing: 0.02em; }
+.tv-table td { padding: 12px; border-top: 1px solid #2a2e39; text-align: center; color: #d1d4dc; font-weight: 600; }
+.tv-table td + td, .tv-table th + th { border-left: 1px solid #2a2e39; }
+.tv-table td.v { font: 700 18px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.tv-table .teal { color: var(--tp); } .tv-table .red { color: var(--sl); } .tv-table .white { color: #fff; }
+.table-wrap { padding: 16px; display: grid; gap: 12px; }
+.table-note { font: 600 12px/1.5 var(--f-mono); color: var(--dim); }
+.curve-wrap { padding: 16px; display: grid; gap: 14px; }
+.curve-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.curve-head h3 { font-size: 20px; text-transform: uppercase; }
+.curve-head span { font: 700 26px/1 var(--f-mono); color: var(--tp); }
+.curve { width: 100%; height: auto; }
+.trades { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.trades li { padding: 10px 8px; border: 1px solid var(--line); text-align: center; display: grid; gap: 6px; background: rgba(255, 255, 255, 0.02); }
+.trades .t { font: 600 11px/1 var(--f-mono); color: var(--dim); letter-spacing: 0.1em; }
+.trades .r { font: 700 16px/1 var(--f-mono); }
+.trades .win { color: var(--tp); border-color: rgba(34, 171, 148, 0.45); }
+.trades .loss { color: var(--sl); border-color: rgba(242, 54, 69, 0.45); }
+.reels { margin-top: clamp(36px, 5vw, 56px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.reel { display: grid; gap: 12px; }
+.reel video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: #000; border: 1px solid var(--line-2); border-radius: 18px; }
+.reel h3 { font-size: 18px; text-transform: uppercase; }
+.reel p { color: var(--muted); font-size: 15px; }
+
+/* ---------- calculator ---------- */
+.calc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+.calc-in, .calc-out { padding: clamp(20px, 3vw, 32px); display: grid; gap: 22px; align-content: start; }
+.calc-out { border-left: 1px solid var(--line); background: rgba(0, 0, 0, 0.18); }
+.field { display: grid; gap: 10px; }
+.field-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.field label { font: 700 13px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.field output { font: 700 22px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.range-wrap { position: relative; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(90deg, var(--red) var(--fill, 50%), var(--line-2) var(--fill, 50%)); }
+input[type="range"]::-moz-range-track { height: 6px; background: var(--line-2); }
+input[type="range"]::-moz-range-progress { height: 6px; background: var(--red); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; background: #fff; border: 4px solid var(--red); border-radius: 50%; box-shadow: 0 0 0 4px rgba(229, 22, 46, 0.25); }
+input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: #fff; border: 4px solid var(--red); border-radius: 50%; }
+.be-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--tp); pointer-events: none; }
+.be-mark span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font: 700 10px/1 var(--f-mono); color: var(--tp); white-space: nowrap; }
+.big-out { display: grid; gap: 6px; }
+.big-out .lbl { font: 700 12px/1 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+.big-out .val { font: 700 clamp(40px, 6vw, 64px)/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.big-out .sub { color: var(--muted); font-weight: 600; }
+.pos { color: var(--tp); } .neg { color: var(--sl); }
+.wl-bar { display: flex; height: 18px; border: 1px solid var(--line-2); overflow: hidden; }
+.wl-bar .w { background: var(--tp); } .wl-bar .l { background: var(--sl); }
+.wl-legend { display: flex; justify-content: space-between; gap: 10px; font: 600 13px/1.4 var(--f-mono); color: var(--muted); }
+.calc-note { font-size: 14px; color: var(--dim); }
+
+/* ---------- access ---------- */
+.acc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 48px); align-items: start; }
+.acc-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: a; }
+.acc-steps li { counter-increment: a; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px; border: 1px solid var(--line); background: var(--panel); }
+.acc-steps li::before { content: counter(a); width: 44px; height: 44px; display: grid; place-items: center; font: 700 20px/1 var(--f-mono); color: #fff; background: var(--red); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+.acc-steps h3 { font-size: 19px; text-transform: uppercase; margin-bottom: 4px; }
+.acc-steps p { color: var(--muted); }
+kbd { font: 700 13px/1 var(--f-mono); padding: 3px 7px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--fg); }
+.tvdlg { background: #1e222d; border: 1px solid #2a2e39; border-radius: 12px; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.9); font-family: var(--f-body); }
+.tvdlg-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; color: #d1d4dc; font-weight: 700; font-size: 16px; }
+.tvdlg-head .x { color: #787b86; font-size: 20px; line-height: 1; }
+.tvdlg-search { margin: 0 14px 12px; display: flex; align-items: center; gap: 10px; padding: 11px 12px; background: #131722; border: 2px solid #2962ff; border-radius: 8px; color: #fff; font-weight: 600; min-height: 46px; }
+.tvdlg-search svg { width: 18px; height: 18px; color: #b2b5be; flex: none; }
+.tvdlg-search .caret { width: 2px; height: 20px; background: #2962ff; animation: blink 1s steps(1) infinite; }
+.tvdlg-body { display: grid; grid-template-columns: 150px minmax(0, 1fr); border-top: 1px solid #2a2e39; min-height: 210px; }
+.tvdlg-side { padding: 10px 8px; display: grid; gap: 2px; align-content: start; background: rgba(255, 255, 255, 0.02); }
+.tvdlg-side span { padding: 9px 10px; color: #b2b5be; font-size: 14px; font-weight: 600; border-radius: 6px; }
+.tvdlg-side span.on { color: #fff; background: rgba(41, 98, 255, 0.25); }
+.tvdlg-list { padding: 10px 12px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.tvdlg-cols { display: flex; justify-content: space-between; font: 700 11px/1 var(--f-mono); color: #787b86; letter-spacing: 0.08em; padding: 4px 6px; }
+.tvdlg-row { display: flex; align-items: center; gap: 10px; padding: 12px 10px; border-radius: 8px; color: #fff; font-weight: 700; font-size: 14px; background: rgba(41, 98, 255, 0.3); outline: 2px solid #2962ff; transition: opacity .25s ease, background-color .25s ease; overflow-wrap: anywhere; }
+.tvdlg-row svg { width: 18px; height: 18px; color: #facc15; flex: none; }
+.tvdlg-row.pending { opacity: 0; }
+.tvdlg-row.idle { background: rgba(255, 255, 255, 0.05); outline-color: transparent; }
+.tv-replay { justify-self: start; }
+.msg { padding: clamp(18px, 3vw, 28px); display: grid; gap: 16px; margin-top: 20px; }
+.msg h3 { font-size: 22px; text-transform: uppercase; }
+.msg input[type="text"] { width: 100%; min-height: 50px; padding: 0 14px; font: 600 17px/1 var(--f-mono); color: var(--fg); background: #0d090a; border: 1px solid var(--line-2); }
+.msg input[type="text"]:focus { border-color: var(--red); outline: none; box-shadow: 0 0 0 3px rgba(229, 22, 46, 0.25); }
+.msg-preview { margin: 0; padding: 14px; font: 500 15px/1.6 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; color: #e8dfe1; background: #0d090a; border-left: 3px solid var(--red); user-select: all; }
+.msg-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.copy-status { font: 600 13px/1.4 var(--f-mono); color: var(--tp); min-height: 1.4em; }
+
+/* ---------- socials ---------- */
+.soc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.soc { padding: 22px; display: grid; gap: 14px; align-content: start; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+.soc:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -24px rgba(229, 22, 46, 0.8); }
+.soc-ico { width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid var(--line-2); color: var(--fg); }
+.soc-ico svg { width: 28px; height: 28px; }
+.soc h3 { font-size: 22px; text-transform: uppercase; }
+.soc .handle { font: 700 15px/1.3 var(--f-mono); color: var(--red-hot); overflow-wrap: anywhere; }
+.soc .handle.pending { color: var(--dim); }
+.soc p { color: var(--muted); font-size: 15px; }
+.soc .go { font: 700 13px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg); display: inline-flex; gap: 8px; align-items: center; }
+
+/* ---------- faq ---------- */
+.faq { display: grid; gap: 10px; max-width: 860px; }
+.faq details { border: 1px solid var(--line); background: var(--panel); }
+.faq summary { list-style: none; cursor: pointer; padding: 18px 20px; display: flex; justify-content: space-between; gap: 16px; align-items: center; font: 700 18px/1.3 var(--f-display); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font: 700 22px/1 var(--f-mono); color: var(--red); transition: transform .2s ease; flex: none; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details > div { padding: 0 20px 20px; color: #d8cccf; max-width: 62em; }
+
+/* ---------- final cta + footer ---------- */
+.final { text-align: left; padding-block: clamp(64px, 9vw, 110px); border-top: 1px solid var(--line); background: radial-gradient(50% 80% at 85% 50%, rgba(229, 22, 46, 0.2), transparent 70%); }
+.final-in { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 32px; align-items: center; }
+.final h2 { font-size: clamp(36px, 5.6vw, 68px); text-transform: uppercase; }
+.final h2 em { font-style: normal; color: var(--red); }
+.final p { margin-top: 14px; color: var(--muted); font-size: 18px; }
+.final .cd-boxes { max-width: 420px; }
+footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(safe-area-inset-bottom, 0px)); color: var(--dim); font-size: 14px; }
+.foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; align-items: start; }
+.foot p + p { margin-top: 10px; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .nav-links { display: none; }
+  .menu-btn { display: block; }
+}
+@media (max-width: 1020px) {
+  .soc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .hero-grid, .ind-grid, .how-grid, .res-grid, .acc-grid, .final-in, .foot { grid-template-columns: minmax(0, 1fr); }
+  .calc { grid-template-columns: minmax(0, 1fr); }
+  .calc-out { border-left: 0; border-top: 1px solid var(--line); }
+  .reels { grid-template-columns: repeat(3, minmax(220px, 1fr)); overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+  .reel { scroll-snap-align: start; }
+  .giant { top: auto; bottom: 36%; right: -8vw; opacity: .55; }
+}
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .session .txt-long { display: none; }
+  .nav-right .btn { display: none; }
+  .ind-body { grid-template-columns: minmax(0, 1fr); }
+  .specs div { grid-template-columns: 96px minmax(0, 1fr); }
+  .trades { grid-template-columns: repeat(5, minmax(56px, 1fr)); overflow-x: auto; }
+  .tvdlg-body { grid-template-columns: minmax(0, 1fr); }
+  .tvdlg-side { display: none; }
+  .soc-grid { grid-template-columns: minmax(0, 1fr); }
+  .chip-sl { right: 0; }
+  .chip-tp { left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .tape-track, .float-chip, .cursor-blink, .tvdlg-search .caret, .session.open .dot { animation: none !important; }
+  .glitch::before, .glitch::after { display: none !important; }
+  .btn, .soc, .giant, .phone { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#inicio" aria-label="ELB NY, ir al inicio">
+      <span class="mark glitch" data-text="ELB">ELB</span><span class="brand-ny">NY</span>
+    </a>
+    <nav class="nav-links" aria-label="Secciones">
+      <a href="#indicadores">Indicadores</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#resultados">Resultados</a>
+      <a href="#calculadora">Ratio 1:3</a>
+      <a href="#acceso">Acceso</a>
+      <a href="#redes">Redes</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-right">
+      <span class="session" id="session" title="Horario de referencia de la sesión de Nueva York: 08:00 a 17:00, hora de Nueva York">
+        <span class="dot" aria-hidden="true"></span><span id="sessionText">Sesión NY</span>
+      </span>
+      <a class="btn btn-red btn-sm" href="#acceso">Acceso gratis</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mobileMenu" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu" hidden>
+    <nav class="wrap" aria-label="Secciones (móvil)">
+      <a href="#indicadores">Indicadores <span>01</span></a>
+      <a href="#como-funciona">Cómo funciona <span>02</span></a>
+      <a href="#resultados">Resultados <span>03</span></a>
+      <a href="#calculadora">Ratio 1:3 <span>04</span></a>
+      <a href="#acceso">Acceso gratis <span>05</span></a>
+      <a href="#redes">Redes <span>06</span></a>
+      <a href="#faq">FAQ <span>07</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ================= HERO ================= -->
+  <section class="hero" id="inicio">
+    <canvas id="bgCandles" aria-hidden="true"></canvas>
+    <div class="giant" id="giant" aria-hidden="true">ELB</div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="prompt">&gt;_</span> Indicador para TradingView · Sesión de Nueva York <span class="cursor-blink" aria-hidden="true"></span></p>
+        <h1 class="hero-title">
+          <span class="ln">Entrada, SL</span>
+          <span class="ln">y <span class="tp">TP 1:3</span>.</span>
+          <span class="ln accent glitch auto" data-text="Trazados solos.">Trazados solos.</span>
+        </h1>
+        <p class="lede">ELB NY detecta el setup en GBPUSD, EURUSD y NASDAQ100 y te deja la operación dibujada en el gráfico: dónde entrar, dónde cortar y dónde cobrar. Tú solo decides si la tomas.</p>
+        <div class="hero-cta">
+          <a class="btn btn-red" href="#acceso">Pedir acceso gratis
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="#como-funciona">Ver la demo</a>
+        </div>
+        <div class="countdown">
+          <p class="countdown-label">Acceso gratis hasta el <b>31 de diciembre de 2026</b>. Quedan:</p>
+          <div class="cd-boxes" data-countdown>
+            <div class="cd-box"><span class="n" data-u="d">--</span><span class="u">días</span></div>
+            <div class="cd-box"><span class="n" data-u="h">--</span><span class="u">horas</span></div>
+            <div class="cd-box"><span class="n" data-u="m">--</span><span class="u">min</span></div>
+            <div class="cd-box"><span class="n" data-u="s">--</span><span class="u">seg</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-media">
+        <div class="phone" id="phone">
+          <video id="heroVideo" src="media/reel-historia.mp4" poster="media/reel-historia.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Reel de ELB NY: 5 trades del backtest de octubre"></video>
+          <button class="sound-btn" id="soundBtn" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="soundWave" d="M17 9l4 6M21 9l-4 6"/></svg>
+            <span id="soundLabel">Activar sonido</span>
+          </button>
+        </div>
+        <span class="float-chip chip-tp num"><i></i>TP +3R</span>
+        <span class="float-chip chip-sl num"><i></i>SL −1R</span>
+        <span class="float-chip chip-wr num"><i></i>Octubre: +7R</span>
+      </div>
+    </div>
+
+    <div class="tape" aria-hidden="true">
+      <div class="tape-track">
+        <div class="tape-group">
+          <span class="tape-item"><b>GBPUSD</b></span>
+          <span class="tape-item"><b>EURUSD</b></span>
+          <span class="tape-item"><b>NASDAQ100</b></span>
+          <span class="tape-item">Sesión NY <b>08:00–17:00 ET</b></span>
+          <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
+          <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
+          <span class="tape-item">Tabla de resultados <b>del mes</b></span>
+          <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
+        </div>
+        <div class="tape-group">
+          <span class="tape-item"><b>GBPUSD</b></span>
+          <span class="tape-item"><b>EURUSD</b></span>
+          <span class="tape-item"><b>NASDAQ100</b></span>
+          <span class="tape-item">Sesión NY <b>08:00–17:00 ET</b></span>
+          <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
+          <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
+          <span class="tape-item">Tabla de resultados <b>del mes</b></span>
+          <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INDICADORES ================= -->
+  <section class="sec" id="indicadores">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://indicadores</p>
+        <h2>Mis indicadores</h2>
+        <p>Herramientas para TradingView hechas para operar con un plan. Cada una te dice qué hacer en el gráfico, no solo cuándo mirar.</p>
+      </header>
+
+      <div class="ind-grid">
+        <article class="ticket ind-card">
+          <div class="ind-top">
+            <div class="ind-name"><span class="mark glitch" data-text="ELB">ELB</span><span class="brand-ny">NY</span></div>
+            <span class="badge badge-free">Gratis hasta el 31/12</span>
+          </div>
+          <p class="ind-full">ELB NY GBPUSD - EURUSD - NASDAQ100</p>
+          <p class="ind-desc">Cuando se forma la señal, el indicador traza tres líneas: la entrada, el stop loss y el take profit a tres veces el riesgo. En la esquina del gráfico lleva la cuenta del mes: trades, TP, SL, winrate, R neto y beneficio.</p>
+          <div class="ind-body">
+            <dl class="specs">
+              <div><dt>Mercados</dt><dd><span class="chips"><span class="chip">GBPUSD</span><span class="chip">EURUSD</span><span class="chip">NASDAQ100</span></span></dd></div>
+              <div><dt>Sesión</dt><dd>Nueva York</dd></div>
+              <div><dt>Gestión</dt><dd>SL y TP 1:3 trazados en cada señal</dd></div>
+              <div><dt>Panel</dt><dd>Resultados del mes en vivo</dd></div>
+              <div><dt>Acceso</dt><dd>TradingView, solo por invitación</dd></div>
+            </dl>
+            <svg class="mini-chart" viewBox="0 0 220 180" role="img" aria-label="Esquema de una señal: entrada, stop loss y take profit 1:3">
+              <rect x="0" y="0" width="220" height="180" fill="#0d090a"/>
+              <rect x="96" y="34" width="118" height="78" fill="#22ab94" fill-opacity="0.14"/>
+              <rect x="96" y="112" width="118" height="26" fill="#f23645" fill-opacity="0.14"/>
+              <line x1="96" y1="34" x2="214" y2="34" stroke="#22ab94" stroke-width="2" stroke-dasharray="6 4"/>
+              <line x1="96" y1="112" x2="214" y2="112" stroke="#3a73ff" stroke-width="2" stroke-dasharray="6 4"/>
+              <line x1="96" y1="138" x2="214" y2="138" stroke="#f23645" stroke-width="2" stroke-dasharray="6 4"/>
+              <g stroke-width="2">
+                <line x1="14" y1="70" x2="14" y2="100" stroke="#f23645"/><rect x="10" y="78" width="8" height="16" fill="#f23645"/>
+                <line x1="30" y1="84" x2="30" y2="116" stroke="#f23645"/><rect x="26" y="90" width="8" height="20" fill="#f23645"/>
+                <line x1="46" y1="98" x2="46" y2="128" stroke="#f23645"/><rect x="42" y="104" width="8" height="16" fill="#f23645"/>
+                <line x1="62" y1="104" x2="62" y2="132" stroke="#22ab94"/><rect x="58" y="110" width="8" height="12" fill="#22ab94"/>
+                <line x1="78" y1="102" x2="78" y2="126" stroke="#22ab94"/><rect x="74" y="106" width="8" height="10" fill="#22ab94"/>
+                <line x1="94" y1="96" x2="94" y2="122" stroke="#22ab94"/><rect x="90" y="108" width="8" height="8" fill="#22ab94"/>
+                <line x1="112" y1="88" x2="112" y2="118" stroke="#22ab94"/><rect x="108" y="94" width="8" height="18" fill="#22ab94"/>
+                <line x1="128" y1="80" x2="128" y2="106" stroke="#f23645"/><rect x="124" y="88" width="8" height="10" fill="#f23645"/>
+                <line x1="144" y1="66" x2="144" y2="100" stroke="#22ab94"/><rect x="140" y="72" width="8" height="22" fill="#22ab94"/>
+                <line x1="160" y1="50" x2="160" y2="82" stroke="#22ab94"/><rect x="156" y="56" width="8" height="18" fill="#22ab94"/>
+                <line x1="176" y1="30" x2="176" y2="62" stroke="#22ab94"/><rect x="172" y="36" width="8" height="20" fill="#22ab94"/>
+              </g>
+              <text x="210" y="28" fill="#22ab94" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" text-anchor="end">TP 1:3</text>
+              <text x="210" y="106" fill="#6f98ff" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" text-anchor="end">ENTRADA</text>
+              <text x="210" y="152" fill="#f23645" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" text-anchor="end">SL</text>
+            </svg>
+          </div>
+          <div class="ind-actions">
+            <a class="btn btn-red" href="#acceso">Pedir acceso</a>
+            <a class="btn btn-ghost" href="#como-funciona">Ver cómo funciona</a>
+          </div>
+        </article>
+
+        <article class="ticket soon-card">
+          <div class="lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="1"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          </div>
+          <span class="badge badge-soon">En desarrollo</span>
+          <h3>Próximo indicador ELB</h3>
+          <p>Estoy trabajando en más herramientas para la sesión de Nueva York. Quien me sigue en redes se entera primero y recibe el acceso antes.</p>
+          <a class="btn btn-ghost" href="#redes">Seguirme en redes</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CÓMO FUNCIONA ================= -->
+  <section class="sec" id="como-funciona">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://demo</p>
+        <h2>Así se ve una señal</h2>
+        <p>La señal es el momento en que aparecen las tres líneas. A partir de ahí el plan ya está hecho: el precio decide si toca el TP o el SL.</p>
+      </header>
+      <div class="how-grid">
+        <ol class="steps">
+          <li>
+            <div>
+              <h3>Se forma la señal</h3>
+              <p>El indicador detecta el setup durante la sesión de Nueva York y marca la operación en ese mismo instante.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Quedan trazadas tres líneas</h3>
+              <p><span class="line-key" style="color: var(--entry)"></span>Entrada, <span class="line-key" style="color: var(--sl)"></span>stop loss y <span class="line-key" style="color: var(--tp)"></span>take profit a 3 veces el riesgo. Ya sabes cuánto arriesgas y cuánto buscas antes de entrar.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>El precio decide</h3>
+              <p>Si toca el TP ganas 3R; si toca el SL pierdes 1R. La tabla del indicador suma el resultado al mes automáticamente.</p>
+            </div>
+          </li>
+        </ol>
+
+        <div class="ticket sim">
+          <div class="sim-bar">
+            <div class="seg" role="group" aria-label="Escenario">
+              <button type="button" data-kind="tp" aria-pressed="true">Llega al TP</button>
+              <button type="button" data-kind="sl" aria-pressed="false">Toca el SL</button>
+            </div>
+            <button class="btn btn-red btn-sm" id="simPlay" type="button">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg>
+              Reproducir
+            </button>
+          </div>
+          <canvas id="simCanvas" role="img" aria-label="Animación de una señal: el precio forma la señal, aparecen la entrada, el stop loss y el take profit, y el precio llega al resultado"></canvas>
+          <div class="sim-foot">
+            <div class="legend"><span><span class="line-key" style="color: var(--entry)"></span>Entrada</span><span><span class="line-key" style="color: var(--sl)"></span>SL −1R</span><span><span class="line-key" style="color: var(--tp)"></span>TP +3R</span></div>
+            <span>Animación ilustrativa con precios de ejemplo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESULTADOS ================= -->
+  <section class="sec" id="resultados">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://backtest</p>
+        <h2>Octubre: 5 trades, +7R</h2>
+        <p>Replay de TradingView en NZDUSD de 7 minutos, primeros días de octubre de 2026. Ganó 3 y perdió 2. Con ratio 1:3, dos pérdidas no alcanzan a borrar una ganancia.</p>
+      </header>
+
+      <div class="res-grid">
+        <div class="ticket table-wrap">
+          <table class="tv-table" aria-label="Tabla de resultados del indicador, octubre de 2026">
+            <thead><tr><th scope="col">Mes actual</th><th scope="col">Octubre 2026</th></tr></thead>
+            <tbody>
+              <tr><td>Trades mes</td><td class="v white">5</td></tr>
+              <tr><td>TP mes</td><td class="v teal">3</td></tr>
+              <tr><td>SL mes</td><td class="v red">2</td></tr>
+              <tr><td>Winrate mes</td><td class="v teal">60.0 %</td></tr>
+              <tr><td>R neto mes</td><td class="v teal">7.00 R</td></tr>
+              <tr><td>Beneficio mes</td><td class="v teal">$700.00 USD</td></tr>
+            </tbody>
+          </table>
+          <p class="table-note">Así aparece en el gráfico. Beneficio calculado con $100 de riesgo por operación.</p>
+        </div>
+
+        <div class="ticket curve-wrap">
+          <div class="curve-head"><h3>R acumulado</h3><span class="num">+7R</span></div>
+          <svg class="curve" viewBox="0 0 640 250" role="img" aria-label="Curva de R acumulado: 0, 3, 6, 5, 4 y 7 R tras cada uno de los 5 trades">
+            <defs>
+              <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22ab94" stop-opacity="0.35"/><stop offset="1" stop-color="#22ab94" stop-opacity="0"/></linearGradient>
+            </defs>
+            <g font-family="JetBrains Mono, monospace" font-size="12" fill="#75646b">
+              <line x1="60" y1="200" x2="620" y2="200" stroke="#42262f" stroke-dasharray="4 4"/>
+              <line x1="60" y1="160" x2="620" y2="160" stroke="#2d1d23"/>
+              <line x1="60" y1="120" x2="620" y2="120" stroke="#2d1d23"/>
+              <line x1="60" y1="80" x2="620" y2="80" stroke="#2d1d23"/>
+              <line x1="60" y1="40" x2="620" y2="40" stroke="#2d1d23"/>
+              <text x="48" y="204" text-anchor="end">0R</text>
+              <text x="48" y="164" text-anchor="end">2R</text>
+              <text x="48" y="124" text-anchor="end">4R</text>
+              <text x="48" y="84" text-anchor="end">6R</text>
+              <text x="48" y="44" text-anchor="end">8R</text>
+              <text x="70" y="232" text-anchor="middle">Inicio</text>
+              <text x="180" y="232" text-anchor="middle">T1</text>
+              <text x="290" y="232" text-anchor="middle">T2</text>
+              <text x="400" y="232" text-anchor="middle">T3</text>
+              <text x="510" y="232" text-anchor="middle">T4</text>
+              <text x="610" y="232" text-anchor="end">T5</text>
+            </g>
+            <path d="M70 200 L180 140 L290 80 L400 100 L510 120 L610 60 L610 200 Z" fill="url(#area)"/>
+            <g stroke-width="4" stroke-linecap="round">
+              <line x1="70" y1="200" x2="180" y2="140" stroke="#22ab94"/>
+              <line x1="180" y1="140" x2="290" y2="80" stroke="#22ab94"/>
+              <line x1="290" y1="80" x2="400" y2="100" stroke="#f23645"/>
+              <line x1="400" y1="100" x2="510" y2="120" stroke="#f23645"/>
+              <line x1="510" y1="120" x2="610" y2="60" stroke="#22ab94"/>
+            </g>
+            <g fill="#0b0809" stroke-width="3">
+              <circle cx="70" cy="200" r="6" stroke="#ab9aa0"/>
+              <circle cx="180" cy="140" r="6" stroke="#22ab94"/>
+              <circle cx="290" cy="80" r="6" stroke="#22ab94"/>
+              <circle cx="400" cy="100" r="6" stroke="#f23645"/>
+              <circle cx="510" cy="120" r="6" stroke="#f23645"/>
+              <circle cx="610" cy="60" r="8" stroke="#22ab94" fill="#22ab94"/>
+            </g>
+            <g font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" text-anchor="middle">
+              <text x="180" y="124" fill="#22ab94">3R</text>
+              <text x="290" y="64" fill="#22ab94">6R</text>
+              <text x="400" y="86" fill="#f23645">5R</text>
+              <text x="510" y="106" fill="#f23645">4R</text>
+              <text x="610" y="40" fill="#22ab94" text-anchor="end">7R</text>
+            </g>
+          </svg>
+          <ol class="trades" aria-label="Resultado de cada trade">
+            <li class="win"><span class="t">TRADE 1</span><span class="r">+3R</span></li>
+            <li class="win"><span class="t">TRADE 2</span><span class="r">+3R</span></li>
+            <li class="loss"><span class="t">TRADE 3</span><span class="r">−1R</span></li>
+            <li class="loss"><span class="t">TRADE 4</span><span class="r">−1R</span></li>
+            <li class="win"><span class="t">TRADE 5</span><span class="r">+3R</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="reels" id="reels">
+        <figure class="reel">
+          <video src="media/reel-historia.mp4" poster="media/reel-historia.jpg" controls playsinline preload="none"></video>
+          <figcaption><h3>Perdí 2 de 5 y gané +$700</h3><p>Los 5 trades del backtest, uno por uno, con la tabla actualizándose.</p></figcaption>
+        </figure>
+        <figure class="reel">
+          <video src="media/reel-tp-o-sl.mp4" poster="media/reel-tp-o-sl.jpg" controls playsinline preload="none"></video>
+          <figcaption><h3>¿TP o SL?</h3><p>Sale la señal, cuenta atrás y el resultado.</p></figcaption>
+        </figure>
+        <figure class="reel">
+          <video src="media/reel-lineas.mp4" poster="media/reel-lineas.jpg" controls playsinline preload="none"></video>
+          <figcaption><h3>Deja de dibujar líneas</h3><p>Entrada, SL y TP 1:3 aparecen solos al formarse la señal.</p></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CALCULADORA ================= -->
+  <section class="sec" id="calculadora">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://ratio-1-3</p>
+        <h2>¿Por qué 1:3?</h2>
+        <p>Cada TP paga tres veces lo que arriesga cada SL. Con eso, acertar más de 1 de cada 4 operaciones ya deja el resultado en positivo. Mueve los controles y compruébalo.</p>
+      </header>
+
+      <div class="ticket calc">
+        <div class="calc-in">
+          <div class="field">
+            <div class="field-top"><label for="wr">Winrate</label><output id="wrOut" for="wr" class="num">60 %</output></div>
+            <div class="range-wrap">
+              <input id="wr" type="range" min="10" max="90" step="1" value="60" aria-describedby="beNote">
+              <span class="be-mark" id="beMark" aria-hidden="true"><span>Equilibrio 25 %</span></span>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="ntr">Operaciones</label><output id="ntrOut" for="ntr" class="num">20</output></div>
+            <input id="ntr" type="range" min="5" max="100" step="1" value="20">
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="risk">Riesgo por operación</label><output id="riskOut" for="risk" class="num">$100</output></div>
+            <input id="risk" type="range" min="10" max="1000" step="10" value="100">
+          </div>
+          <p class="calc-note" id="beNote">Con ratio 1:3 el punto de equilibrio está en 25 % de acierto: 1 TP (+3R) compensa 3 SL (−3R).</p>
+        </div>
+        <div class="calc-out" aria-live="polite">
+          <div class="big-out">
+            <span class="lbl">Resultado esperado</span>
+            <span class="val num pos" id="totR">+28.0R</span>
+            <span class="sub num" id="totUsd">≈ +$2,800 con $100 por operación</span>
+          </div>
+          <div class="big-out">
+            <span class="lbl">Por operación</span>
+            <span class="val num pos" id="perR" style="font-size: clamp(28px, 4vw, 40px)">+1.40R</span>
+          </div>
+          <div class="wl-bar" aria-hidden="true"><span class="w" id="wlW" style="width: 80%"></span><span class="l" id="wlL" style="width: 20%"></span></div>
+          <div class="wl-legend num"><span id="wlWin" class="pos">12 TP · +36R</span><span id="wlLoss" class="neg">8 SL · −8R</span></div>
+          <p class="calc-note">Es la matemática del ratio con el winrate que elijas. No es una promesa de resultados: el winrate real cambia de un mes a otro.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ACCESO ================= -->
+  <section class="sec" id="acceso">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://acceso</p>
+        <h2>Actívalo gratis en 4 pasos</h2>
+        <p>ELB NY es un script solo por invitación: lo activo a mano para tu usuario de TradingView. Sin pagos y sin tarjeta hasta el 31 de diciembre.</p>
+      </header>
+
+      <div class="acc-grid">
+        <div>
+          <ol class="acc-steps">
+            <li><div><h3>Escríbeme</h3><p>Comenta <kbd>ELB</kbd> en cualquiera de mis reels o mándame un DM.</p></div></li>
+            <li><div><h3>Pásame tu usuario</h3><p>Envíame tu nombre de usuario de TradingView. Abajo te armo el mensaje listo para copiar.</p></div></li>
+            <li><div><h3>Te doy acceso</h3><p>Activo el indicador en tu cuenta y te aviso por el mismo chat.</p></div></li>
+            <li><div><h3>Agrégalo al gráfico</h3><p>En TradingView abre <kbd>Indicadores</kbd> → <kbd>Solo por invitación</kbd> y elige ELB NY. Márcalo con ★ para tenerlo en favoritos.</p></div></li>
+          </ol>
+
+          <div class="ticket msg">
+            <h3>Tu mensaje, listo para enviar</h3>
+            <div class="field">
+              <label for="tvUser">Tu usuario de TradingView</label>
+              <input id="tvUser" type="text" placeholder="ej. trader_ny" autocomplete="off" spellcheck="false" maxlength="40">
+            </div>
+            <pre class="msg-preview" id="msgPreview">Hola, quiero acceso gratis a ELB NY. Mi usuario de TradingView es: ________</pre>
+            <div class="msg-actions">
+              <button class="btn btn-red btn-sm" id="copyMsg" type="button">Copiar mensaje</button>
+              <span class="copy-status" id="copyStatus" role="status"></span>
+            </div>
+            <div class="msg-actions" id="dmLinks"></div>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 14px;">
+          <div class="tvdlg" aria-label="Vista del menú de indicadores de TradingView con ELB NY seleccionado" role="img">
+            <div class="tvdlg-head"><span>Indicadores, métricas y estrategias</span><span class="x" aria-hidden="true">×</span></div>
+            <div class="tvdlg-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+              <span id="tvTyped">ELB NY</span><span class="caret" aria-hidden="true"></span>
+            </div>
+            <div class="tvdlg-body">
+              <div class="tvdlg-side"><span>Favoritos</span><span>Personal</span><span>Técnicos</span><span>Financieros</span><span class="on">Solo por invitación</span></div>
+              <div class="tvdlg-list">
+                <div class="tvdlg-cols"><span>NOMBRE</span><span>BOOSTS</span></div>
+                <div class="tvdlg-row" id="tvRow">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>
+                  ELB NY GBPUSD - EURUSD - NASDAQ100
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm tv-replay" id="tvReplay" type="button">Ver la búsqueda otra vez</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= REDES ================= -->
+  <section class="sec" id="redes">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://redes</p>
+        <h2>Sígueme en redes</h2>
+        <p>Ahí subo los backtests, las señales que salen en la sesión y las novedades de los indicadores. También es donde respondo los DMs para dar acceso.</p>
+      </header>
+      <div class="soc-grid" id="socGrid"></div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="sec" id="faq">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://faq</p>
+        <h2>Preguntas frecuentes</h2>
+      </header>
+      <div class="faq">
+        <details open>
+          <summary>¿Qué hace exactamente ELB NY?</summary>
+          <div>Cuando se forma la señal, traza en tu gráfico la entrada, el stop loss y el take profit a tres veces el riesgo. Además muestra una tabla con los resultados del mes: trades, TP, SL, winrate, R neto y beneficio.</div>
+        </details>
+        <details>
+          <summary>¿En qué mercados y horario funciona?</summary>
+          <div>Está pensado para la sesión de Nueva York en GBPUSD, EURUSD y NASDAQ100. El backtest de esta página es un replay en NZDUSD de 7 minutos.</div>
+        </details>
+        <details>
+          <summary>¿Por qué la flecha dice SELL y las líneas marcan una compra?</summary>
+          <div>La flecha es una contra-señal a propósito. La operación real es la que marcan las líneas de entrada, SL y TP.</div>
+        </details>
+        <details>
+          <summary>¿Cuánto cuesta?</summary>
+          <div>Es gratis hasta el 31 de diciembre de 2026. Después tendrá una versión de pago; anunciaré el precio y los detalles en mis redes.</div>
+        </details>
+        <details>
+          <summary>¿Qué necesito para usarlo?</summary>
+          <div>Una cuenta de TradingView. Me pasas tu usuario, te doy acceso y lo encuentras en Indicadores → Solo por invitación.</div>
+        </details>
+        <details>
+          <summary>¿Los resultados están garantizados?</summary>
+          <div>No. Los números de esta página salen de un backtest en replay de 5 operaciones. Pruébalo primero en una cuenta demo y arriesga solo lo que puedas perder. Nada de esto es consejo financiero.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CIERRE ================= -->
+  <section class="final">
+    <div class="wrap final-in">
+      <div>
+        <h2>El acceso gratis <em>cierra el 31/12</em></h2>
+        <p>Pide tu acceso hoy y prueba ELB NY en tu gráfico durante lo que queda del año.</p>
+      </div>
+      <div style="display: grid; gap: 16px;">
+        <div class="cd-boxes" data-countdown>
+          <div class="cd-box"><span class="n" data-u="d">--</span><span class="u">días</span></div>
+          <div class="cd-box"><span class="n" data-u="h">--</span><span class="u">horas</span></div>
+          <div class="cd-box"><span class="n" data-u="m">--</span><span class="u">min</span></div>
+          <div class="cd-box"><span class="n" data-u="s">--</span><span class="u">seg</span></div>
+        </div>
+        <a class="btn btn-red" href="#acceso">Pedir acceso gratis</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div><a class="brand" href="#inicio" aria-label="ELB NY, volver arriba"><span class="mark glitch" data-text="ELB">ELB</span><span class="brand-ny">NY</span></a></div>
+    <div>
+      <p>Los resultados mostrados provienen de un backtest en el modo replay de TradingView y no garantizan resultados futuros. Operar con apalancamiento implica un alto riesgo de pérdida. Nada en este sitio es consejo financiero ni una recomendación de inversión.</p>
+      <p>TradingView es una marca de TradingView, Inc. ELB NY es un script independiente. © 2026 ELB NY.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ======== Configuración: tus redes ========
+     Escribe tu usuario y el enlace de cada red. Si una queda vacía, su tarjeta se muestra como pendiente. */
+  const REDES = [
+    { id: 'instagram', nombre: 'Instagram', usuario: '', url: '', dm: '', texto: 'Reels de backtests y las señales de la sesión.' },
+    { id: 'tiktok', nombre: 'TikTok', usuario: '', url: '', dm: '', texto: 'Los mismos reels, primero que en ningún lado.' },
+    { id: 'youtube', nombre: 'YouTube', usuario: '', url: '', dm: '', texto: 'Shorts y explicaciones más largas del indicador.' },
+    { id: 'tradingview', nombre: 'TradingView', usuario: '', url: '', dm: '', texto: 'Mi perfil, donde está publicado ELB NY.' },
+  ];
+  const FIN_GRATIS = new Date(2026, 11, 31, 23, 59, 59);
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  /* ---------- scroll progress + nav state ---------- */
+  const progress = $('#progress'), nav = $('#nav');
+  const onScroll = () => {
+    const h = document.documentElement.scrollHeight - innerHeight;
+    progress.style.width = (h > 0 ? (scrollY / h) * 100 : 0) + '%';
+    nav.classList.toggle('scrolled', scrollY > 8);
+  };
+  addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* ---------- mobile menu ---------- */
+  const menuBtn = $('#menuBtn'), menu = $('#mobileMenu');
+  const setMenu = open => { menu.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú'); };
+  menuBtn.addEventListener('click', () => setMenu(menu.hidden));
+  $$('#mobileMenu a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
+
+  /* ---------- NY session clock ---------- */
+  const sessionEl = $('#session'), sessionText = $('#sessionText');
+  const fmtDur = mins => { const h = Math.floor(mins / 60), m = mins % 60; return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`; };
+  function updateSession() {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
+      const get = t => parts.find(p => p.type === t).value;
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const wd = days.indexOf(get('weekday')), h = Number(get('hour')) % 24, m = Number(get('minute'));
+      const now = h * 60 + m, OPEN = 8 * 60, CLOSE = 17 * 60;
+      const weekday = wd >= 1 && wd <= 5;
+      const clock = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ET`;
+      let txt;
+      if (weekday && now >= OPEN && now < CLOSE) {
+        sessionEl.classList.add('open');
+        txt = `NY abierta <span class="txt-long">· cierra en ${fmtDur(CLOSE - now)}</span>`;
+      } else {
+        sessionEl.classList.remove('open');
+        let mins;
+        if (weekday && now < OPEN) mins = OPEN - now;
+        else { let add = 1; while (![1, 2, 3, 4, 5].includes((wd + add) % 7)) add++; mins = add * 1440 - now + OPEN; }
+        txt = `NY cerrada <span class="txt-long">· abre en ${fmtDur(mins)}</span>`;
+      }
+      sessionText.innerHTML = `${txt} <span class="txt-long">· ${clock}</span>`;
+    } catch (e) { sessionText.textContent = 'Sesión NY 08:00–17:00 ET'; }
+  }
+  updateSession(); setInterval(updateSession, 30000);
+
+  /* ---------- countdown ---------- */
+  const boxes = $$('[data-countdown]');
+  function updateCountdown() {
+    let ms = FIN_GRATIS - new Date();
+    if (ms < 0) ms = 0;
+    const s = Math.floor(ms / 1000), v = { d: Math.floor(s / 86400), h: Math.floor(s / 3600) % 24, m: Math.floor(s / 60) % 60, s: s % 60 };
+    boxes.forEach(b => $$('[data-u]', b).forEach(n => { const u = n.dataset.u; n.textContent = u === 'd' ? String(v[u]) : String(v[u]).padStart(2, '0'); }));
+  }
+  updateCountdown(); setInterval(updateCountdown, 1000);
+
+  /* ---------- hero: sound toggle + 3D tilt ---------- */
+  const heroVideo = $('#heroVideo'), soundBtn = $('#soundBtn');
+  function setHeroSound(on) {
+    heroVideo.muted = !on;
+    if (on) { heroVideo.currentTime = 0; heroVideo.play().catch(() => {}); }
+    soundBtn.setAttribute('aria-pressed', String(on));
+    $('#soundLabel').textContent = on ? 'Silenciar' : 'Activar sonido';
+    $('#soundWave').setAttribute('d', on ? 'M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12' : 'M17 9l4 6M21 9l-4 6');
+  }
+  soundBtn.addEventListener('click', () => setHeroSound(heroVideo.muted));
+  const giant = $('#giant'), phone = $('#phone'), hero = $('#inicio');
+  if (!reduce && matchMedia('(pointer: fine)').matches) {
+    hero.addEventListener('pointermove', e => {
+      const r = hero.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      giant.style.setProperty('--ry', (-14 + x * 16).toFixed(2) + 'deg'); giant.style.setProperty('--rx', (6 - y * 10).toFixed(2) + 'deg');
+      phone.style.setProperty('--pry', (-10 + x * 14).toFixed(2) + 'deg'); phone.style.setProperty('--prx', (4 - y * 8).toFixed(2) + 'deg');
+    });
+    hero.addEventListener('pointerleave', () => { ['--ry', '--rx'].forEach(p => giant.style.removeProperty(p)); ['--pry', '--prx'].forEach(p => phone.style.removeProperty(p)); });
+  }
+
+  /* ---------- reels: one at a time ---------- */
+  const vids = $$('#reels video');
+  vids.forEach(v => v.addEventListener('play', () => { vids.forEach(o => { if (o !== v) o.pause(); }); if (!heroVideo.muted) setHeroSound(false); }));
+
+  /* ---------- deterministic RNG ---------- */
+  const rng = seed => () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+
+  /* ---------- background candles (hero) ---------- */
+  const bg = $('#bgCandles'), bctx = bg.getContext('2d');
+  const R = rng(42); const bars = []; let p = 100;
+  for (let i = 0; i < 600; i++) { const o = p, c = o + (R() - 0.48) * 1.6 + Math.sin(i / 23) * 0.35; const h = Math.max(o, c) + R() * 0.9, l = Math.min(o, c) - R() * 0.9; bars.push({ o, c, h, l }); p = c; }
+  let bgOff = 0, bgVisible = true, bgLast = 0;
+  function drawBg(ts) {
+    const dpr = Math.min(devicePixelRatio || 1, 2), w = bg.clientWidth, h = bg.clientHeight;
+    if (bg.width !== Math.round(w * dpr) || bg.height !== Math.round(h * dpr)) { bg.width = Math.round(w * dpr); bg.height = Math.round(h * dpr); }
+    bctx.setTransform(dpr, 0, 0, dpr, 0, 0); bctx.clearRect(0, 0, w, h);
+    const cw = 14, n = Math.ceil(w / cw) + 2, start = Math.floor(bgOff) % (bars.length - n - 1), frac = bgOff % 1;
+    const view = bars.slice(start, start + n);
+    let lo = Infinity, hi = -Infinity; view.forEach(b => { lo = Math.min(lo, b.l); hi = Math.max(hi, b.h); });
+    const pad = (hi - lo) * 0.25, y = v => h * 0.1 + (1 - (v - lo + pad) / (hi - lo + pad * 2)) * h * 0.8;
+    bctx.strokeStyle = 'rgba(255,255,255,0.035)'; bctx.lineWidth = 1;
+    for (let gx = 0; gx < w; gx += 70) { bctx.beginPath(); bctx.moveTo(gx + 0.5, 0); bctx.lineTo(gx + 0.5, h); bctx.stroke(); }
+    for (let gy = 0; gy < h; gy += 70) { bctx.beginPath(); bctx.moveTo(0, gy + 0.5); bctx.lineTo(w, gy + 0.5); bctx.stroke(); }
+    view.forEach((b, i) => {
+      const x = (i - frac) * cw, up = b.c >= b.o, col = up ? 'rgba(34,171,148,0.55)' : 'rgba(229,22,46,0.6)';
+      bctx.strokeStyle = col; bctx.fillStyle = col;
+      bctx.beginPath(); bctx.moveTo(x + cw / 2, y(b.h)); bctx.lineTo(x + cw / 2, y(b.l)); bctx.stroke();
+      const top = y(Math.max(b.o, b.c)), bot = y(Math.min(b.o, b.c)); bctx.fillRect(x + 3, top, cw - 6, Math.max(1.5, bot - top));
+    });
+    if (!reduce && bgVisible) { const dt = bgLast ? Math.min(64, ts - bgLast) : 16; bgLast = ts; bgOff += dt / 600; requestAnimationFrame(drawBg); } else bgLast = 0;
+  }
+  new IntersectionObserver(es => { const v = es[0].isIntersecting; if (v && !bgVisible) { bgVisible = true; requestAnimationFrame(drawBg); } bgVisible = v; }).observe(bg);
+  requestAnimationFrame(drawBg);
+  addEventListener('resize', () => { if (reduce) requestAnimationFrame(drawBg); });
+
+  /* ---------- signal simulator ---------- */
+  const simCanvas = $('#simCanvas'), sctx = simCanvas.getContext('2d');
+  function buildScenario(kind) {
+    const r = rng(kind === 'tp' ? 1002 : 1007), N = 62, SIG = 30, pts = [];
+    const pre = [[0, 101.0], [8, 101.25], [16, 100.7], [23, 100.95], [29, 100.08]];
+    const post = kind === 'tp'
+      ? [[30, 100.05], [34, 100.35], [38, 100.2], [43, 100.75], [48, 101.0], [52, 101.45], [55, 101.95], [58, 101.75], [61, 101.9]]
+      : [[30, 100.05], [33, 99.85], [36, 99.7], [39, 99.38], [42, 99.25], [47, 99.5], [52, 99.35], [56, 99.55], [61, 99.45]];
+    const ctrl = pre.concat(post);
+    const at = i => { for (let k = 1; k < ctrl.length; k++) if (i <= ctrl[k][0]) { const [x0, y0] = ctrl[k - 1], [x1, y1] = ctrl[k]; const u = (i - x0) / (x1 - x0 || 1), e = u * u * (3 - 2 * u); return y0 + (y1 - y0) * e; } return ctrl[ctrl.length - 1][1]; };
+    let prev = 101.0;
+    for (let i = 0; i < N; i++) {
+      const o = prev, c = at(i) + (i === SIG ? 0 : (r() - 0.5) * 0.12);
+      let h = Math.max(o, c) + r() * 0.1, l = Math.min(o, c) - r() * 0.1;
+      pts.push({ o, c, h, l }); prev = c;
+    }
+    const entry = pts[SIG].c, risk = 0.6, sl = entry - risk, tp = entry + risk * 3;
+    let hit = -1;
+    for (let i = SIG + 1; i < N; i++) {
+      const b = pts[i];
+      if (kind === 'tp') { b.l = Math.max(b.l, sl + 0.12); if (b.h >= tp) { hit = i; break; } }
+      else { b.h = Math.min(b.h, tp - 0.5); if (b.l <= sl) { hit = i; break; } }
+    }
+    if (hit < 0) hit = N - 1;
+    return { kind, pts, N, SIG, entry, sl, tp, hit };
+  }
+  const scenarios = { tp: buildScenario('tp'), sl: buildScenario('sl') };
+  let sim = { kind: 'tp', prog: scenarios.tp.N, playing: false };
+
+  function drawSim() {
+    const S = scenarios[sim.kind], dpr = Math.min(devicePixelRatio || 1, 2);
+    const w = simCanvas.clientWidth, h = simCanvas.clientHeight;
+    if (simCanvas.width !== Math.round(w * dpr) || simCanvas.height !== Math.round(h * dpr)) { simCanvas.width = Math.round(w * dpr); simCanvas.height = Math.round(h * dpr); }
+    const g = sctx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    const axisW = 64, padT = 22, padB = 22, plotW = w - axisW - 10, plotH = h - padT - padB;
+    let lo = Infinity, hi = -Infinity; S.pts.forEach(b => { lo = Math.min(lo, b.l); hi = Math.max(hi, b.h); });
+    lo = Math.min(lo, S.sl) - 0.15; hi = Math.max(hi, S.tp) + 0.15;
+    const y = v => padT + (1 - (v - lo) / (hi - lo)) * plotH, cw = plotW / S.N, x = i => 8 + i * cw;
+    const C = { grid: 'rgba(255,255,255,0.05)', txt: css('--dim'), up: css('--tp'), dn: css('--sl'), entry: css('--entry'), tp: css('--tp'), sl: css('--sl'), fg: css('--fg') };
+    g.font = '600 11px "JetBrains Mono", monospace'; g.textBaseline = 'middle';
+    for (let v = Math.ceil(lo * 2) / 2; v <= hi; v += 0.5) {
+      g.strokeStyle = C.grid; g.beginPath(); g.moveTo(0, Math.round(y(v)) + 0.5); g.lineTo(w - axisW, Math.round(y(v)) + 0.5); g.stroke();
+      g.fillStyle = C.txt; g.textAlign = 'left'; g.fillText(v.toFixed(2), w - axisW + 8, y(v));
+    }
+    const shown = Math.min(S.N, sim.prog), full = Math.floor(shown), part = shown - full;
+    const lineP = Math.max(0, Math.min(1, (shown - (S.SIG + 1)) * 0.8));
+    if (lineP > 0) {
+      const x0 = x(S.SIG) + cw / 2, xEndFull = x(S.N) - 2, xe = x0 + (xEndFull - x0) * lineP;
+      const closed = shown > S.hit + 1, xz = closed ? Math.min(xe, x(S.hit) + cw) : xe;
+      g.globalAlpha = 0.16; g.fillStyle = C.tp; g.fillRect(x0, y(S.tp), xz - x0, y(S.entry) - y(S.tp));
+      g.fillStyle = C.sl; g.fillRect(x0, y(S.entry), xz - x0, y(S.sl) - y(S.entry)); g.globalAlpha = 1;
+      [[S.tp, C.tp, 'TP 1:3'], [S.entry, C.entry, 'ENTRADA'], [S.sl, C.sl, 'SL']].forEach(([v, col, lab]) => {
+        g.save(); g.strokeStyle = col; g.lineWidth = 2; g.setLineDash([7, 5]); g.shadowColor = col; g.shadowBlur = 10;
+        g.beginPath(); g.moveTo(x0, y(v)); g.lineTo(xe, y(v)); g.stroke(); g.restore();
+        if (lineP > 0.6) {
+          const lx = w - axisW + 2;
+          g.fillStyle = col; g.fillRect(lx, y(v) - 10, axisW - 4, 20);
+          g.fillStyle = '#fff'; g.textAlign = 'center'; g.font = '700 10px "JetBrains Mono", monospace'; g.fillText(lab, lx + (axisW - 4) / 2, y(v) + 0.5);
+          g.font = '600 11px "JetBrains Mono", monospace';
+        }
+      });
+    }
+    for (let i = 0; i < Math.min(S.N, full + (part > 0 ? 1 : 0)); i++) {
+      const b = S.pts[i]; let c = b.c, hh = b.h, ll = b.l;
+      if (i === full && part > 0) { c = b.o + (b.c - b.o) * part; hh = Math.max(b.o, c) + (b.h - Math.max(b.o, b.c)) * part; ll = Math.min(b.o, c) - (Math.min(b.o, b.c) - b.l) * part; }
+      const up = c >= b.o, col = up ? C.up : C.dn, cx = x(i) + cw / 2;
+      g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(cx, y(hh)); g.lineTo(cx, y(ll)); g.stroke();
+      const top = y(Math.max(b.o, c)), bot = y(Math.min(b.o, c)); g.fillRect(x(i) + cw * 0.18, top, cw * 0.64, Math.max(1.5, bot - top));
+    }
+    if (shown >= S.SIG + 1) {
+      const cx = x(S.SIG) + cw / 2, cy = y(S.pts[S.SIG].c);
+      g.save(); g.strokeStyle = css('--red-hot'); g.lineWidth = 2; g.shadowColor = css('--red'); g.shadowBlur = 14;
+      g.beginPath(); g.arc(cx, cy, 13, 0, Math.PI * 2); g.stroke(); g.restore();
+      g.fillStyle = C.fg; g.textAlign = 'center'; g.font = '700 11px "JetBrains Mono", monospace'; g.fillText('SEÑAL', cx, cy + 26);
+    }
+    if (shown > S.hit + 1) {
+      const win = S.kind === 'tp', txt = win ? 'TP alcanzado  +3R' : 'SL tocado  −1R', col = win ? C.tp : C.sl;
+      g.font = '700 15px "JetBrains Mono", monospace'; const tw = g.measureText(txt).width + 28;
+      const bx = 14, by = 14; g.fillStyle = 'rgba(11,8,9,0.85)'; g.fillRect(bx, by, tw, 36);
+      g.strokeStyle = col; g.lineWidth = 2; g.strokeRect(bx + 1, by + 1, tw - 2, 34);
+      g.fillStyle = col; g.textAlign = 'left'; g.fillText(txt, bx + 14, by + 18.5);
+      const hx = x(S.hit) + cw / 2, hy = y(win ? S.tp : S.sl);
+      g.save(); g.fillStyle = col; g.shadowColor = col; g.shadowBlur = 16; g.beginPath(); g.arc(hx, hy, 6, 0, Math.PI * 2); g.fill(); g.restore();
+    }
+  }
+  function playSim() {
+    if (reduce) { sim.prog = scenarios[sim.kind].N; drawSim(); return; }
+    sim.prog = 0; sim.playing = true; let last = 0;
+    const S = scenarios[sim.kind];
+    const step = ts => {
+      if (!sim.playing) return;
+      const dt = last ? Math.min(50, ts - last) : 16; last = ts;
+      const slow = sim.prog > S.SIG - 1 && sim.prog < S.SIG + 3 ? 0.35 : 1;
+      sim.prog += dt / 1000 * 11 * slow;
+      drawSim();
+      if (sim.prog < S.N) requestAnimationFrame(step); else { sim.playing = false; sim.prog = S.N; drawSim(); }
+    };
+    requestAnimationFrame(step);
+  }
+  $$('.seg button').forEach(b => b.addEventListener('click', () => {
+    $$('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    sim.kind = b.dataset.kind; sim.playing = false; playSim();
+  }));
+  $('#simPlay').addEventListener('click', () => { sim.playing = false; playSim(); });
+  addEventListener('resize', () => drawSim());
+  document.fonts && document.fonts.ready.then(drawSim);
+  drawSim();
+  new IntersectionObserver((es, ob) => { if (es[0].isIntersecting) { ob.disconnect(); playSim(); } }, { threshold: 0.5 }).observe(simCanvas);
+
+  /* ---------- 1:3 calculator ---------- */
+  const wr = $('#wr'), ntr = $('#ntr'), risk = $('#risk');
+  const money = v => (v < 0 ? '−' : '+') + '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+  function fill(el) { el.style.setProperty('--fill', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); }
+  function calc() {
+    const p = wr.value / 100, n = Number(ntr.value), rk = Number(risk.value);
+    const per = p * 3 - (1 - p), tot = per * n, wins = Math.round(n * p), losses = n - wins;
+    $('#wrOut').textContent = wr.value + ' %'; $('#ntrOut').textContent = n; $('#riskOut').textContent = '$' + rk.toLocaleString('en-US');
+    const totEl = $('#totR'), perEl = $('#perR');
+    totEl.textContent = (tot < 0 ? '−' : '+') + Math.abs(tot).toFixed(1) + 'R';
+    perEl.textContent = (per < 0 ? '−' : '+') + Math.abs(per).toFixed(2) + 'R';
+    [totEl, perEl].forEach(e => { e.classList.toggle('pos', tot >= 0); e.classList.toggle('neg', tot < 0); });
+    $('#totUsd').textContent = `≈ ${money(tot * rk)} con $${rk.toLocaleString('en-US')} por operación`;
+    const wPart = wins * 3, lPart = losses, sum = wPart + lPart || 1;
+    $('#wlW').style.width = (wPart / sum * 100) + '%'; $('#wlL').style.width = (lPart / sum * 100) + '%';
+    $('#wlWin').textContent = `${wins} TP · +${wins * 3}R`; $('#wlLoss').textContent = `${losses} SL · −${losses}R`;
+    [wr, ntr, risk].forEach(fill);
+  }
+  [wr, ntr, risk].forEach(el => el.addEventListener('input', calc));
+  $('#beMark').style.left = `calc(${(25 - 10) / 80 * 100}% + ${11 - (25 - 10) / 80 * 22}px)`;
+  calc();
+
+  /* ---------- socials ---------- */
+  const ICONS = {
+    instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>',
+    tiktok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.7 2.7 2.5 4.3 5.5 4.6"/></svg>',
+    youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.2l5 2.8-5 2.8z" fill="currentColor" stroke="none"/></svg>',
+    tradingview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M16 6h4v4"/></svg>',
+  };
+  const soc = $('#socGrid');
+  REDES.forEach(r => {
+    const ok = !!(r.url && r.usuario);
+    const el = document.createElement(ok ? 'a' : 'div');
+    el.className = 'ticket soc';
+    if (ok) { el.href = r.url; el.target = '_blank'; el.rel = 'noopener'; }
+    el.innerHTML = `<span class="soc-ico" aria-hidden="true">${ICONS[r.id] || ''}</span>
+      <h3>${r.nombre}</h3>
+      <span class="handle ${ok ? '' : 'pending'}">${ok ? '@' + r.usuario.replace(/^@/, '') : 'Usuario pendiente'}</span>
+      <p>${r.texto}</p>
+      <span class="go">${ok ? 'Seguir' : 'Enlace en camino'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>`;
+    soc.appendChild(el);
+  });
+  const dm = $('#dmLinks');
+  REDES.filter(r => (r.dm || r.url) && r.id !== 'tradingview' && r.id !== 'youtube').forEach(r => {
+    const a = document.createElement('a'); a.className = 'btn btn-ghost btn-sm'; a.href = r.dm || r.url; a.target = '_blank'; a.rel = 'noopener';
+    a.innerHTML = `${ICONS[r.id]} Enviar por ${r.nombre}`; dm.appendChild(a);
+  });
+  if (!dm.children.length) dm.hidden = true;
+
+  /* ---------- access message ---------- */
+  const tvUser = $('#tvUser'), preview = $('#msgPreview'), status = $('#copyStatus');
+  const buildMsg = () => `Hola, quiero acceso gratis a ELB NY. Mi usuario de TradingView es: ${tvUser.value.trim() || '________'}`;
+  tvUser.addEventListener('input', () => { preview.textContent = buildMsg(); status.textContent = ''; });
+  $('#copyMsg').addEventListener('click', () => {
+    const text = buildMsg();
+    const fallback = () => { const range = document.createRange(); range.selectNodeContents(preview); const s = getSelection(); s.removeAllRanges(); s.addRange(range); status.textContent = 'Mensaje seleccionado: cópialo con Ctrl+C o mantén pulsado.'; };
+    if (!tvUser.value.trim()) { status.style.color = css('--red-hot'); status.textContent = 'Escribe tu usuario de TradingView primero.'; tvUser.focus(); return; }
+    status.style.color = '';
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => { status.textContent = 'Copiado. Pégalo en mi DM.'; }, fallback);
+    else fallback();
+  });
+
+  /* ---------- TradingView search replay ---------- */
+  const typed = $('#tvTyped'), row = $('#tvRow');
+  let tvTimer = null;
+  $('#tvReplay').addEventListener('click', () => {
+    clearTimeout(tvTimer);
+    const q = 'ELB NY'; let i = 0;
+    typed.textContent = ''; row.classList.add('pending'); row.classList.remove('idle');
+    if (reduce) { typed.textContent = q; row.classList.remove('pending'); return; }
+    const tick = () => {
+      if (i < q.length) { typed.textContent = q.slice(0, ++i); tvTimer = setTimeout(tick, 110); }
+      else { tvTimer = setTimeout(() => { row.classList.remove('pending'); row.classList.add('idle'); tvTimer = setTimeout(() => row.classList.remove('idle'), 500); }, 250); }
+    };
+    tvTimer = setTimeout(tick, 250);
+  });
+})();
+</script>
+
+</body>
+</html>
