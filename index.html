@@ -271,8 +271,22 @@ p { margin: 0; }
 .curve-head h3 { font-size: 20px; text-transform: uppercase; }
 .curve-head span { font: 700 26px/1 var(--f-mono); color: var(--tp); }
 .curve { width: 100%; height: auto; }
-.per-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 20px; }
-.per-note { color: var(--muted); font-size: 15px; max-width: 40em; }
+.months { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+.mchip {
+  position: relative; display: grid; gap: 6px; text-align: left; cursor: pointer; color: var(--fg);
+  padding: 14px 14px 12px; background: var(--panel); border: 1px solid var(--line);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+.mchip:hover { border-color: var(--line-2); transform: translateY(-2px); }
+.mchip[aria-pressed="true"] { border-color: var(--red); background: linear-gradient(180deg, rgba(229, 22, 46, 0.16), rgba(229, 22, 46, 0.04)); }
+.mchip[aria-pressed="true"]::before { content: ""; position: absolute; left: 10px; right: 0; top: 0; height: 2px; background: var(--red); }
+.mchip .mn { font: 700 14px/1 var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.mchip[aria-pressed="true"] .mn { color: var(--fg); }
+.mchip .mr { font: 700 clamp(20px, 2.4vw, 26px)/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.mchip .ms { font: 600 12px/1.3 var(--f-mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+.per-note { color: var(--muted); font-size: 15px; max-width: 46em; margin: 14px 0 20px; min-height: 1.6em; }
+.list-cap { font: 600 12px/1.4 var(--f-mono); color: var(--dim); letter-spacing: 0.04em; }
 .res-grid.swap .tv-table td.v, .res-grid.swap .curve { animation: swapIn .45s ease; }
 @keyframes swapIn { from { opacity: .15; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .trades { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
@@ -304,7 +318,7 @@ input[type="range"]::-moz-range-progress { height: 6px; background: var(--red); 
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; background: #fff; border: 4px solid var(--red); border-radius: 50%; box-shadow: 0 0 0 4px rgba(229, 22, 46, 0.25); }
 input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: #fff; border: 4px solid var(--red); border-radius: 50%; }
 .be-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--tp); pointer-events: none; }
-.be-mark span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font: 700 10px/1 var(--f-mono); color: var(--tp); white-space: nowrap; }
+.be-mark span { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); font: 700 10px/1 var(--f-mono); color: var(--tp); white-space: nowrap; }
 .big-out { display: grid; gap: 6px; }
 .big-out .lbl { font: 700 12px/1 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
 .big-out .val { font: 700 clamp(40px, 6vw, 64px)/1 var(--f-mono); font-variant-numeric: tabular-nums; }
@@ -392,6 +406,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .hero-grid, .ind-grid, .how-grid, .res-grid, .acc-grid, .final-in, .foot { grid-template-columns: minmax(0, 1fr); }
   .calc { grid-template-columns: minmax(0, 1fr); }
   .calc-out { border-left: 0; border-top: 1px solid var(--line); }
+  .months { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .reels { grid-template-columns: repeat(4, minmax(220px, 1fr)); overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
   .reel { scroll-snap-align: start; }
   .giant { top: auto; bottom: 36%; right: -8vw; opacity: .55; }
@@ -403,6 +418,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .ind-body { grid-template-columns: minmax(0, 1fr); }
   .specs div { grid-template-columns: 96px minmax(0, 1fr); }
   .trades { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
+  .months { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .tvdlg-body { grid-template-columns: minmax(0, 1fr); }
   .tvdlg-side { display: none; }
   .soc-grid { grid-template-columns: minmax(0, 1fr); }
@@ -413,7 +429,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   html { scroll-behavior: auto; }
   .tape-track, .float-chip, .cursor-blink, .tvdlg-search .caret, .session.open .dot, .res-grid.swap .tv-table td.v, .res-grid.swap .curve { animation: none !important; }
   .glitch::before, .glitch::after { display: none !important; }
-  .btn, .soc, .giant, .phone { transition: none !important; }
+  .btn, .soc, .giant, .phone, .mchip { transition: none !important; }
 }
 </style>
 </head>
@@ -499,7 +515,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
         </div>
         <span class="float-chip chip-tp num"><i></i>TP +3R</span>
         <span class="float-chip chip-sl num"><i></i>SL −1R</span>
-        <span class="float-chip chip-wr num"><i></i>Sep + Oct: +19R</span>
+        <span class="float-chip chip-wr num"><i></i>7 meses: +39R</span>
       </div>
     </div>
 
@@ -513,7 +529,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
           <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
           <span class="tape-item">Tabla de resultados <b>del mes</b></span>
-          <span class="tape-item">Backtest sep + oct <b>+19R</b></span>
+          <span class="tape-item">Backtest abr–oct <b>+39R</b></span>
           <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
         </div>
         <div class="tape-group">
@@ -524,7 +540,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
           <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
           <span class="tape-item">Tabla de resultados <b>del mes</b></span>
-          <span class="tape-item">Backtest sep + oct <b>+19R</b></span>
+          <span class="tape-item">Backtest abr–oct <b>+39R</b></span>
           <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
         </div>
       </div>
@@ -656,38 +672,33 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     <div class="wrap">
       <header class="sec-head">
         <p class="kicker">ELB://backtest</p>
-        <h2>2 meses: 13 trades, +19R</h2>
-        <p>Replay de TradingView en NZDUSD de 7 minutos: septiembre completo y los primeros días de octubre de 2026. Ganó 8 y perdió 5. Con ratio 1:3, cada TP cubre tres pérdidas.</p>
+        <h2>7 meses: 61 trades, +39R</h2>
+        <p>Backtest en el replay de TradingView, de abril a octubre de 2026. Ganó 25 y perdió 36: acertó el 41 % y aun así sumó +39R, porque cada TP paga tres veces lo que cuesta un SL. Seis de siete meses cerraron en positivo; mayo fue el único negativo (−5R).</p>
       </header>
 
-      <div class="per-bar">
-        <div class="seg" id="perSeg" role="group" aria-label="Periodo">
-          <button type="button" data-period="all" aria-pressed="true">Total</button>
-          <button type="button" data-period="sep" aria-pressed="false">Septiembre</button>
-          <button type="button" data-period="oct" aria-pressed="false">Octubre</button>
-        </div>
-        <p class="per-note" id="perNote">Septiembre empezó con 33 % de acierto tras 3 trades y terminó en +12R.</p>
-      </div>
+      <div class="months" id="perSeg" role="group" aria-label="Elegir periodo"></div>
+      <p class="per-note" id="perNote"></p>
 
       <div class="res-grid">
         <div class="ticket table-wrap">
           <table class="tv-table" id="resTable" aria-label="Tabla de resultados del indicador">
-            <thead><tr><th scope="col" id="rtHead">Acumulado</th><th scope="col" id="rtMonth">Sep + Oct 2026</th></tr></thead>
+            <thead><tr><th scope="col" id="rtHead">Acumulado</th><th scope="col" id="rtMonth">Abr – Oct 2026</th></tr></thead>
             <tbody>
-              <tr><td id="rtL0">Trades</td><td class="v white" id="rtTrades">13</td></tr>
-              <tr><td id="rtL1">TP</td><td class="v teal" id="rtTp">8</td></tr>
-              <tr><td id="rtL2">SL</td><td class="v red" id="rtSl">5</td></tr>
-              <tr><td id="rtL3">Winrate</td><td class="v teal" id="rtWr">61.5 %</td></tr>
-              <tr><td id="rtL4">R neto</td><td class="v teal" id="rtR">19.00 R</td></tr>
-              <tr><td id="rtL5">Beneficio</td><td class="v teal" id="rtBen">$1900.00 USD</td></tr>
+              <tr><td id="rtL0">Trades</td><td class="v white" id="rtTrades">61</td></tr>
+              <tr><td id="rtL1">TP</td><td class="v teal" id="rtTp">25</td></tr>
+              <tr><td id="rtL2">SL</td><td class="v red" id="rtSl">36</td></tr>
+              <tr><td id="rtL3">Winrate</td><td class="v red" id="rtWr">41.0 %</td></tr>
+              <tr><td id="rtL4">R neto</td><td class="v teal" id="rtR">39.00 R</td></tr>
+              <tr><td id="rtL5">Beneficio</td><td class="v teal" id="rtBen">$3900.00 USD</td></tr>
             </tbody>
           </table>
           <p class="table-note">Así aparece en el gráfico, mes por mes. Beneficio calculado con $100 de riesgo por operación.</p>
         </div>
 
         <div class="ticket curve-wrap">
-          <div class="curve-head"><h3>R acumulado</h3><span class="num" id="curveTotal">+19R</span></div>
-          <svg class="curve" id="curve" viewBox="0 0 640 260" role="img" aria-label="Curva de R acumulado tras cada trade"></svg>
+          <div class="curve-head"><h3 id="curveTitle">R acumulado por mes</h3><span class="num" id="curveTotal">+39R</span></div>
+          <svg class="curve" id="curve" viewBox="0 0 640 260" role="img" aria-label="Curva de R acumulado"></svg>
+          <p class="list-cap" id="listCap"></p>
           <ol class="trades" id="tradeList" aria-label="Resultado de cada trade"></ol>
         </div>
       </div>
@@ -719,7 +730,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
       <header class="sec-head">
         <p class="kicker">ELB://ratio-1-3</p>
         <h2>¿Por qué 1:3?</h2>
-        <p>Cada TP paga tres veces lo que arriesga cada SL. Con eso, acertar más de 1 de cada 4 operaciones ya deja el resultado en positivo. Mueve los controles y compruébalo.</p>
+        <p>Cada TP paga tres veces lo que arriesga cada SL. Con eso, acertar más de 1 de cada 4 operaciones ya deja el resultado en positivo. El control arranca en 41 %, el winrate real de mis 7 meses de backtest. Muévelo y compruébalo.</p>
       </header>
 
       <div class="ticket calc">
@@ -727,7 +738,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <div class="field">
             <div class="field-top"><label for="wr">Winrate</label><output id="wrOut" for="wr" class="num">60 %</output></div>
             <div class="range-wrap">
-              <input id="wr" type="range" min="10" max="90" step="1" value="60" aria-describedby="beNote">
+              <input id="wr" type="range" min="10" max="90" step="1" value="41" aria-describedby="beNote">
               <span class="be-mark" id="beMark" aria-hidden="true"><span>Equilibrio 25 %</span></span>
             </div>
           </div>
@@ -858,7 +869,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
         </details>
         <details>
           <summary>¿Los resultados están garantizados?</summary>
-          <div>No. Los números de esta página salen de un backtest en replay de 13 operaciones (septiembre y principios de octubre de 2026). Pruébalo primero en una cuenta demo y arriesga solo lo que puedas perder. Nada de esto es consejo financiero.</div>
+          <div>No. Los números de esta página salen de un backtest en replay de 61 operaciones, de abril a octubre de 2026. Pruébalo primero en una cuenta demo y arriesga solo lo que puedas perder. Nada de esto es consejo financiero.</div>
         </details>
       </div>
     </div>
@@ -1134,88 +1145,144 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   drawSim();
   new IntersectionObserver((es, ob) => { if (es[0].isIntersecting) { ob.disconnect(); playSim(); } }, { threshold: 0.5 }).observe(simCanvas);
 
-  /* ---------- backtest results: period toggle, TradingView table, R curve ---------- */
-  // 1 = TP (+3R), 0 = SL (−1R), in the order they happened on the replay.
-  const SEP = [0, 1, 0, 1, 1, 1, 1, 0], OCT = [1, 1, 0, 0, 1];
-  const PERIODS = {
-    all: { head: 'Acumulado', month: 'Sep + Oct 2026', suffix: '', trades: [...SEP.map(r => ({ r, m: 'SEP' })), ...OCT.map(r => ({ r, m: 'OCT' }))],
-      note: 'Septiembre empezó con 33 % de acierto tras 3 trades y terminó en +12R. Octubre sumó otros +7R.' },
-    sep: { head: 'Mes actual', month: 'Septiembre 2026', suffix: ' mes', trades: SEP.map(r => ({ r, m: 'SEP' })),
-      note: 'Arrancó con SL, TP, SL: 33 % de acierto. Luego llegaron 4 TP seguidos.' },
-    oct: { head: 'Mes actual', month: 'Octubre 2026', suffix: ' mes', trades: OCT.map(r => ({ r, m: 'OCT' })),
-      note: 'Dos TP, dos SL y un TP final: 60 % de acierto y +7R.' },
-  };
+  /* ---------- backtest results: month chips, TradingView table, charts ---------- */
+  // Monthly totals come from the indicator's table. Trade order is only known where the replay was recorded (1 = TP +3R, 0 = SL −1R).
+  const MONTHS = [
+    { key: 'abr', name: 'Abril', month: 'Abril 2026', tp: 6, sl: 7, seq: null,
+      note: 'Abril: 6 TP y 7 SL, 46.2 % de acierto y +11R.' },
+    { key: 'may', name: 'Mayo', month: 'Mayo 2026', tp: 1, sl: 8, seq: null,
+      note: 'Mayo fue el único mes negativo: 1 TP en 9 operaciones (11 % de acierto) y −5R. Así se ve un mes malo con ratio 1:3: la pérdida queda acotada.' },
+    { key: 'jun', name: 'Junio', month: 'Junio 2026', tp: 3, sl: 4, seq: null,
+      note: 'Junio: ganó 3 de 7 operaciones (42.9 %) y aun así cerró en +5R.' },
+    { key: 'jul', name: 'Julio', month: 'Julio 2026', tp: 3, sl: 7, seq: null,
+      note: 'Julio fue el mes más difícil: 7 SL en 10 operaciones, 30 % de acierto. Con ratio 1:3 terminó en +2R.' },
+    { key: 'ago', name: 'Agosto', month: 'Agosto 2026', tp: 4, sl: 5, seq: null,
+      note: 'Agosto: más SL que TP (5 contra 4) y +7R al cierre.' },
+    { key: 'sep', name: 'Septiembre', month: 'Septiembre 2026', tp: 5, sl: 3, seq: [0, 1, 0, 1, 1, 1, 1, 0],
+      note: 'Septiembre arrancó con SL, TP, SL (33 % de acierto) y luego llegaron 4 TP seguidos: +12R. Replay en NZDUSD de 7 minutos.' },
+    { key: 'oct', name: 'Octubre', month: 'Octubre 2026', tp: 3, sl: 2, seq: [1, 1, 0, 0, 1],
+      note: 'Octubre, primeros días: dos TP, dos SL y un TP final para +7R. Replay en NZDUSD de 7 minutos.' },
+  ];
+  const ALL = { key: 'all', name: 'Total', month: 'Abr – Oct 2026', tp: MONTHS.reduce((a, m) => a + m.tp, 0), sl: MONTHS.reduce((a, m) => a + m.sl, 0),
+    note: 'Seis de siete meses cerraron en positivo. El winrate total es 41 %: se pierden casi 6 de cada 10 operaciones y la cuenta igual crece +39R.' };
+  const netR = m => m.tp * 3 - m.sl;
+  const wrOf = m => m.tp / (m.tp + m.sl) * 100;
+  const fmtR = v => (v >= 0 ? '+' : '−') + Math.abs(v) + 'R';
   const SVGNS = 'http://www.w3.org/2000/svg';
   const svgEl = (tag, attrs, text) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
-  const COL = { tp: '#22ab94', sl: '#f23645', grid: '#2d1d23', zero: '#42262f', txt: '#75646b', start: '#ab9aa0', void: '#0b0809' };
-  function drawCurve(trades) {
+  const COL = { tp: '#22ab94', sl: '#f23645', grid: '#2d1d23', zero: '#42262f', txt: '#75646b', start: '#ab9aa0', void: '#0b0809', track: '#1b1216', fg: '#f4eeef' };
+  const MONO = 'JetBrains Mono, monospace';
+
+  // month chips
+  const seg = $('#perSeg');
+  [ALL, ...MONTHS].forEach(m => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'mchip'; b.dataset.period = m.key; b.setAttribute('aria-label', `: ,  % de acierto,  trades`);
+    b.setAttribute('aria-pressed', String(m.key === 'all'));
+    const r = netR(m);
+    b.innerHTML = `<span class="mn">${m.key === 'all' ? 'Total' : m.name.slice(0, 3)}</span><span class="mr" style="color: ${r >= 0 ? 'var(--tp)' : 'var(--sl)'}">${fmtR(r)}</span><span class="ms">${wrOf(m).toFixed(1)} %</span><span class="ms">${m.tp + m.sl} trades</span>`;
+    seg.append(b);
+  });
+
+  // cumulative-R line chart; points = [{ label, v }] starting at 0
+  function drawLine(points) {
     const svg = $('#curve'); svg.replaceChildren();
-    const cum = [0]; trades.forEach(t => cum.push(cum[cum.length - 1] + (t.r ? 3 : -1)));
-    const lo = Math.min(0, ...cum), hi = Math.max(...cum);
-    const range = Math.max(1, hi - lo), step = range <= 8 ? 2 : range <= 16 ? 4 : 5;
+    const vals = points.map(p => p.v), lo = Math.min(0, ...vals), hi = Math.max(...vals);
+    const range = Math.max(1, hi - lo), step = range <= 8 ? 2 : range <= 16 ? 4 : range <= 30 ? 5 : 10;
     const vMin = Math.floor(lo / step) * step, vMax = Math.ceil(hi / step) * step + (hi % step === 0 ? step : 0);
-    const X0 = 64, X1 = 612, Y0 = 210, Y1 = 30;
-    const x = i => X0 + (X1 - X0) * i / (cum.length - 1), y = v => Y0 - (Y0 - Y1) * (v - vMin) / (vMax - vMin);
-    const g = svgEl('g', { 'font-family': 'JetBrains Mono, monospace', 'font-size': '12', fill: COL.txt });
+    const X0 = 64, X1 = 612, Y0 = 210, Y1 = 30, last = points.length - 1;
+    const x = i => X0 + (X1 - X0) * i / last, y = v => Y0 - (Y0 - Y1) * (v - vMin) / (vMax - vMin);
+    const many = points.length > 9;
+    const g = svgEl('g', { 'font-family': MONO, 'font-size': 12, fill: COL.txt });
     for (let v = vMin; v <= vMax; v += step) {
       g.append(svgEl('line', { x1: X0 - 6, x2: 624, y1: y(v), y2: y(v), stroke: v === 0 ? COL.zero : COL.grid, 'stroke-dasharray': v === 0 ? '4 4' : '' }));
       g.append(svgEl('text', { x: 52, y: y(v) + 4, 'text-anchor': 'end' }, v + 'R'));
     }
-    const many = cum.length > 9;
-    cum.forEach((_, i) => { if (!many || i % 2 === 0 || i === cum.length - 1) g.append(svgEl('text', { x: x(i), y: 246, 'text-anchor': i === cum.length - 1 ? 'end' : 'middle', 'font-size': many ? '11' : '12' }, i === 0 ? 'Inicio' : 'T' + i)); });
+    points.forEach((p, i) => { if (!many || i % 2 === 0 || i === last) g.append(svgEl('text', { x: x(i), y: 246, 'text-anchor': i === last ? 'end' : 'middle', 'font-size': many ? 11 : 12 }, p.label)); });
     svg.append(g);
-    const defs = svgEl('defs', {}); const lg = svgEl('linearGradient', { id: 'area', x1: 0, y1: 0, x2: 0, y2: 1 });
+    const defs = svgEl('defs', {}), lg = svgEl('linearGradient', { id: 'area', x1: 0, y1: 0, x2: 0, y2: 1 });
     lg.append(svgEl('stop', { offset: 0, 'stop-color': COL.tp, 'stop-opacity': 0.35 }), svgEl('stop', { offset: 1, 'stop-color': COL.tp, 'stop-opacity': 0 }));
     defs.append(lg); svg.append(defs);
-    let d = `M${x(0)} ${y(0)}`; cum.forEach((v, i) => { if (i) d += ` L${x(i)} ${y(v)}`; }); d += ` L${x(cum.length - 1)} ${y(0)} Z`;
+    let d = `M${x(0)} ${y(0)}`; points.forEach((p, i) => { if (i) d += ` L${x(i)} ${y(p.v)}`; }); d += ` L${x(last)} ${y(0)} Z`;
     svg.append(svgEl('path', { d, fill: 'url(#area)' }));
     const lines = svgEl('g', { 'stroke-width': many ? 3 : 4, 'stroke-linecap': 'round' });
-    for (let i = 1; i < cum.length; i++) lines.append(svgEl('line', { x1: x(i - 1), y1: y(cum[i - 1]), x2: x(i), y2: y(cum[i]), stroke: cum[i] > cum[i - 1] ? COL.tp : COL.sl }));
+    for (let i = 1; i <= last; i++) lines.append(svgEl('line', { x1: x(i - 1), y1: y(points[i - 1].v), x2: x(i), y2: y(points[i].v), stroke: points[i].v >= points[i - 1].v ? COL.tp : COL.sl }));
     svg.append(lines);
-    // month divider when both months are shown
-    const firstOct = trades.findIndex(t => t.m === 'OCT');
-    if (firstOct > 0) {
-      const xd = (x(firstOct) + x(firstOct + 0)) / 2;
-      svg.append(svgEl('line', { x1: xd, x2: xd, y1: Y1 - 10, y2: Y0 + 6, stroke: '#ab9aa0', 'stroke-opacity': 0.35, 'stroke-dasharray': '3 5' }));
-      svg.append(svgEl('text', { x: xd - 6, y: Y1 - 14, 'text-anchor': 'end', 'font-family': 'JetBrains Mono, monospace', 'font-size': '11', fill: '#ab9aa0' }, 'SEP'));
-      svg.append(svgEl('text', { x: xd + 6, y: Y1 - 14, 'font-family': 'JetBrains Mono, monospace', 'font-size': '11', fill: '#ab9aa0' }, 'OCT'));
-    }
     const dots = svgEl('g', { 'stroke-width': 3 });
-    cum.forEach((v, i) => {
-      const last = i === cum.length - 1, up = i && v > cum[i - 1], col = i === 0 ? COL.start : up ? COL.tp : COL.sl;
-      dots.append(svgEl('circle', { cx: x(i), cy: y(v), r: last ? 8 : many ? 5 : 6, stroke: col, fill: last ? col : COL.void }));
+    points.forEach((p, i) => {
+      const up = i && p.v >= points[i - 1].v, col = i === 0 ? COL.start : up ? COL.tp : COL.sl;
+      dots.append(svgEl('circle', { cx: x(i), cy: y(p.v), r: i === last ? 8 : many ? 5 : 6, stroke: col, fill: i === last ? col : COL.void }));
     });
     svg.append(dots);
-    const labels = svgEl('g', { 'font-family': 'JetBrains Mono, monospace', 'font-size': many ? '11' : '13', 'font-weight': 700, 'text-anchor': 'middle' });
-    cum.forEach((v, i) => {
-      if (!i) return; const up = v > cum[i - 1];
-      labels.append(svgEl('text', { x: x(i), y: up ? y(v) - 14 : y(v) + 22, fill: up ? COL.tp : COL.sl, 'text-anchor': i === cum.length - 1 ? 'end' : 'middle' }, v + 'R'));
+    const labels = svgEl('g', { 'font-family': MONO, 'font-size': many ? 11 : 13, 'font-weight': 700, 'text-anchor': 'middle' });
+    points.forEach((p, i) => {
+      if (!i) return; const up = p.v >= points[i - 1].v;
+      labels.append(svgEl('text', { x: x(i), y: up ? y(p.v) - 14 : y(p.v) + 22, fill: up ? COL.tp : COL.sl, 'text-anchor': i === last ? 'end' : 'middle' }, p.v + 'R'));
     });
     svg.append(labels);
-    svg.setAttribute('aria-label', 'Curva de R acumulado: ' + cum.join(', ') + ' R tras cada trade');
-    return cum[cum.length - 1];
+    svg.setAttribute('aria-label', 'Curva de R acumulado: ' + points.map(p => `${p.label} ${p.v}R`).join(', '));
+    return points[last].v;
+  }
+
+  // months without a recorded trade order: R won by TPs, R lost by SLs, net
+  function drawComposition(m) {
+    const svg = $('#curve'); svg.replaceChildren();
+    const gain = m.tp * 3, loss = m.sl, net = gain - loss, max = Math.max(gain, loss, Math.abs(net), 1);
+    const X0 = 196, W = 370;
+    [['Ganado en TP', `${m.tp} × 3R`, gain, COL.tp], ['Perdido en SL', `${m.sl} × 1R`, -loss, COL.sl], ['Neto del mes', `${wrOf(m).toFixed(1)} % de acierto`, net, net >= 0 ? COL.tp : COL.sl]]
+      .forEach(([label, sub, v, col], i) => {
+        const top = 34 + i * 74, w = Math.max(3, W * Math.abs(v) / max);
+        svg.append(svgEl('text', { x: 4, y: top + 15, fill: COL.fg, 'font-family': 'Barlow, sans-serif', 'font-size': 19, 'font-weight': 700 }, label));
+        svg.append(svgEl('text', { x: 4, y: top + 36, fill: COL.txt, 'font-family': MONO, 'font-size': 13 }, sub));
+        svg.append(svgEl('rect', { x: X0, y: top, width: W, height: 34, fill: COL.track }));
+        svg.append(svgEl('rect', { x: X0, y: top, width: w, height: 34, fill: col, 'fill-opacity': i === 2 ? 1 : 0.8 }));
+        svg.append(svgEl('text', { x: X0 + w + 10, y: top + 23, fill: col, 'font-family': MONO, 'font-size': 17, 'font-weight': 700 }, (v >= 0 ? '+' : '−') + Math.abs(v) + 'R'));
+      });
+    svg.setAttribute('aria-label', `${m.month}: ${gain}R ganados en TP, ${loss}R perdidos en SL, neto ${fmtR(net)}`);
+    return net;
+  }
+
+  function chip(cls, t, r, extra) {
+    const li = document.createElement('li'); li.className = cls;
+    li.innerHTML = `<span class="t">${t}</span><span class="r">${r}</span>${extra ? `<span class="m">${extra}</span>` : ''}`;
+    return li;
   }
   function showPeriod(key) {
-    const P = PERIODS[key], n = P.trades.length, tp = P.trades.filter(t => t.r).length, sl = n - tp, r = tp * 3 - sl;
-    $('#rtHead').textContent = P.head; $('#rtMonth').textContent = P.month;
-    ['Trades', 'TP', 'SL', 'Winrate', 'R neto', 'Beneficio'].forEach((l, i) => { $('#rtL' + i).textContent = l + P.suffix; });
-    $('#rtTrades').textContent = n; $('#rtTp').textContent = tp; $('#rtSl').textContent = sl;
-    const wrEl = $('#rtWr'); wrEl.textContent = (tp / n * 100).toFixed(1) + ' %'; wrEl.className = 'v ' + (tp / n >= 0.5 ? 'teal' : 'red');
+    const m = key === 'all' ? ALL : MONTHS.find(x => x.key === key);
+    const n = m.tp + m.sl, r = netR(m), suffix = key === 'all' ? '' : ' mes';
+    $('#rtHead').textContent = key === 'all' ? 'Acumulado' : 'Mes actual'; $('#rtMonth').textContent = m.month;
+    ['Trades', 'TP', 'SL', 'Winrate', 'R neto', 'Beneficio'].forEach((l, i) => { $('#rtL' + i).textContent = l + suffix; });
+    $('#rtTrades').textContent = n; $('#rtTp').textContent = m.tp; $('#rtSl').textContent = m.sl;
+    const wrEl = $('#rtWr'); wrEl.textContent = wrOf(m).toFixed(1) + ' %'; wrEl.className = 'v ' + (wrOf(m) >= 50 ? 'teal' : 'red');
     $('#rtR').textContent = r.toFixed(2) + ' R'; $('#rtBen').textContent = '$' + (r * 100).toFixed(2) + ' USD';
-    $('#resTable').setAttribute('aria-label', 'Tabla de resultados del indicador, ' + P.month);
-    const total = drawCurve(P.trades);
-    $('#curveTotal').textContent = (total >= 0 ? '+' : '−') + Math.abs(total) + 'R';
+    $('#resTable').setAttribute('aria-label', 'Tabla de resultados del indicador, ' + m.month);
     const list = $('#tradeList'); list.replaceChildren();
-    P.trades.forEach((t, i) => {
-      const li = document.createElement('li'); li.className = t.r ? 'win' : 'loss';
-      li.innerHTML = `<span class="t">TRADE ${i + 1}</span><span class="r">${t.r ? '+3R' : '−1R'}</span>${key === 'all' ? `<span class="m">${t.m}</span>` : ''}`;
-      list.append(li);
-    });
-    $('#perNote').textContent = P.note;
+    let total;
+    if (key === 'all') {
+      let acc = 0;
+      total = drawLine([{ label: 'Inicio', v: 0 }, ...MONTHS.map(x => ({ label: x.name.slice(0, 3), v: (acc += netR(x)) }))]);
+      $('#curveTitle').textContent = 'R acumulado por mes';
+      $('#listCap').textContent = 'Resultado de cada mes';
+      MONTHS.forEach(x => list.append(chip(netR(x) >= 0 ? 'win' : 'loss', x.name.slice(0, 3).toUpperCase(), fmtR(netR(x)), wrOf(x).toFixed(1) + ' %')));
+    } else if (m.seq) {
+      let acc = 0;
+      total = drawLine([{ label: 'Inicio', v: 0 }, ...m.seq.map((t, i) => ({ label: 'T' + (i + 1), v: (acc += t ? 3 : -1) }))]);
+      $('#curveTitle').textContent = 'R acumulado por trade';
+      $('#listCap').textContent = 'Cada trade, en el orden en que ocurrió';
+      m.seq.forEach((t, i) => list.append(chip(t ? 'win' : 'loss', 'TRADE ' + (i + 1), t ? '+3R' : '−1R')));
+    } else {
+      total = drawComposition(m);
+      $('#curveTitle').textContent = 'De dónde sale el resultado';
+      $('#listCap').textContent = `${m.tp} TP y ${m.sl} SL. Es el resumen del mes: el orden de los trades no quedó registrado.`;
+      for (let i = 0; i < m.tp; i++) list.append(chip('win', 'TP', '+3R'));
+      for (let i = 0; i < m.sl; i++) list.append(chip('loss', 'SL', '−1R'));
+    }
+    list.setAttribute('aria-label', $('#listCap').textContent);
+    $('#curveTotal').textContent = fmtR(total);
+    $('#perNote').textContent = m.note;
     const grid = $('#resultados .res-grid'); grid.classList.remove('swap'); void grid.offsetWidth; grid.classList.add('swap');
   }
-  $$('#perSeg button').forEach(b => b.addEventListener('click', () => {
-    $$('#perSeg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+  $$('#perSeg .mchip').forEach(b => b.addEventListener('click', () => {
+    $$('#perSeg .mchip').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
     showPeriod(b.dataset.period);
   }));
   showPeriod('all');
