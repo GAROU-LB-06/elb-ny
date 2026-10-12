@@ -289,9 +289,46 @@ p { margin: 0; }
 .mchip .ms { font: 600 12px/1.3 var(--f-mono); color: var(--dim); font-variant-numeric: tabular-nums; }
 .per-note { color: var(--muted); font-size: 15px; max-width: 46em; margin: 14px 0 20px; min-height: 1.6em; }
 .list-cap { font: 600 12px/1.4 var(--f-mono); color: var(--dim); letter-spacing: 0.04em; }
+.mchip .ms b { font-weight: 700; }
+.tpc { color: var(--tp); }
+.slc { color: var(--sl); }
+/* account simulator */
+.sim2 { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+.sim2-in, .sim2-out { padding: clamp(20px, 3vw, 32px); display: grid; gap: 22px; align-content: start; min-width: 0; margin: 0; }
+.sim2-out { border-left: 1px solid var(--line); background: rgba(0, 0, 0, 0.18); }
+#accPeriod {
+  width: 100%; min-height: 50px; padding: 0 44px 0 14px; font: 600 17px/1 var(--f-body); color: var(--fg); cursor: pointer;
+  background: #0d090a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff4458' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 14px;
+  border: 1px solid var(--line-2); border-radius: 0; -webkit-appearance: none; appearance: none;
+}
+#accPeriod:focus { border-color: var(--red); outline: none; box-shadow: 0 0 0 3px rgba(229, 22, 46, 0.25); }
+#accPeriod option { background: #140d10; color: var(--fg); }
+.money-in { display: flex; align-items: center; border: 1px solid var(--line-2); background: #0d090a; }
+.money-in span { padding: 0 4px 0 14px; color: var(--muted); font: 700 20px/1 var(--f-mono); }
+.money-in input { flex: 1; min-width: 0; min-height: 52px; padding: 0 14px 0 4px; border: 0; background: transparent; color: var(--fg); font: 700 22px/1 var(--f-mono); font-variant-numeric: tabular-nums; outline: none; }
+.money-in:focus-within { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229, 22, 46, 0.25); }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick button { font: 700 13px/1 var(--f-mono); padding: 9px 11px; color: var(--muted); background: transparent; border: 1px solid var(--line-2); cursor: pointer; }
+.quick button:hover { color: var(--fg); border-color: var(--red); }
+.quick button[aria-pressed="true"] { color: #fff; background: rgba(229, 22, 46, 0.18); border-color: var(--red); }
+.field-hint { font: 600 13px/1.5 var(--f-mono); color: var(--dim); }
+.field-err { font: 600 13px/1.4 var(--f-mono); color: var(--red-hot); }
+.field-err:empty { display: none; }
+.lbl-like { font: 700 13px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.acc-chart { width: 100%; height: auto; background: #0d090a; border: 1px solid var(--line); }
+.acc-table-wrap { overflow-x: auto; }
+.acc-table { width: 100%; border-collapse: collapse; font: 600 14px/1.3 var(--f-mono); font-variant-numeric: tabular-nums; }
+.acc-table th { text-align: right; color: var(--dim); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.acc-table td { text-align: right; padding: 7px 8px; border-bottom: 1px dashed var(--line); white-space: nowrap; }
+.acc-table th:first-child, .acc-table td:first-child { text-align: left; }
+.acc-rows { display: grid; }
+.acc-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--line-2); font-weight: 600; }
+.acc-row b { font: 700 16px/1.3 var(--f-mono); text-align: right; }
+.nav-right .btn { white-space: nowrap; }
+
 .res-grid.swap .tv-table td.v, .res-grid.swap .curve { animation: swapIn .45s ease; }
 @keyframes swapIn { from { opacity: .15; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.trades { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+.trades { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
 .trades .m { font: 600 10px/1 var(--f-mono); color: var(--dim); letter-spacing: 0.08em; }
 .trades li { padding: 10px 8px; border: 1px solid var(--line); text-align: center; display: grid; gap: 6px; background: rgba(255, 255, 255, 0.02); }
 .trades .t { font: 600 11px/1 var(--f-mono); color: var(--dim); letter-spacing: 0.1em; }
@@ -408,6 +445,8 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .hero-grid, .ind-grid, .how-grid, .res-grid, .acc-grid, .final-in, .foot { grid-template-columns: minmax(0, 1fr); }
   .calc { grid-template-columns: minmax(0, 1fr); }
   .calc-out { border-left: 0; border-top: 1px solid var(--line); }
+  .sim2 { grid-template-columns: minmax(0, 1fr); }
+  .sim2-out { border-left: 0; border-top: 1px solid var(--line); }
   .months { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .mchip[data-period="all"] { grid-column: 1 / -1; grid-row: auto; }
   .reels { grid-template-columns: repeat(4, minmax(220px, 1fr)); overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
@@ -420,9 +459,10 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .nav-right .btn { display: none; }
   .ind-body { grid-template-columns: minmax(0, 1fr); }
   .specs div { grid-template-columns: 96px minmax(0, 1fr); }
-  .trades { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
-  .mchip { padding: 10px 8px 9px; }
-  .mchip .ms + .ms { display: none; }
+  .trades { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); }
+  .months { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+  .mchip { flex: 0 0 112px; scroll-snap-align: start; }
+  .mchip[data-period="all"] { flex-basis: 136px; }
   .tvdlg-body { grid-template-columns: minmax(0, 1fr); }
   .tvdlg-side { display: none; }
   .soc-grid { grid-template-columns: minmax(0, 1fr); }
@@ -448,8 +488,9 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     </a>
     <nav class="nav-links" aria-label="Secciones">
       <a href="#indicadores">Indicadores</a>
-      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#como-funciona">Demo</a>
       <a href="#resultados">Resultados</a>
+      <a href="#simulador">Simulador</a>
       <a href="#calculadora">Ratio 1:3</a>
       <a href="#acceso">Acceso</a>
       <a href="#redes">Redes</a>
@@ -470,10 +511,11 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
       <a href="#indicadores">Indicadores <span>01</span></a>
       <a href="#como-funciona">Cómo funciona <span>02</span></a>
       <a href="#resultados">Resultados <span>03</span></a>
-      <a href="#calculadora">Ratio 1:3 <span>04</span></a>
-      <a href="#acceso">Acceso gratis <span>05</span></a>
-      <a href="#redes">Redes <span>06</span></a>
-      <a href="#faq">FAQ <span>07</span></a>
+      <a href="#simulador">Simula tu cuenta <span>04</span></a>
+      <a href="#calculadora">Ratio 1:3 <span>05</span></a>
+      <a href="#acceso">Acceso gratis <span>06</span></a>
+      <a href="#redes">Redes <span>07</span></a>
+      <a href="#faq">FAQ <span>08</span></a>
     </nav>
   </div>
 </header>
@@ -727,6 +769,64 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
       </div>
     </div>
   </section>
+
+  <!-- ================= SIMULADOR DE CUENTA ================= -->
+  <section class="sec" id="simulador">
+    <div class="wrap">
+      <header class="sec-head">
+        <p class="kicker">ELB://simulador</p>
+        <h2>Simula tu cuenta</h2>
+        <p>Elige un mes o los 10, tu capital y cuánto arriesgas por operación. La simulación aplica a tu cuenta los TP y SL reales del backtest.</p>
+      </header>
+
+      <div class="ticket sim2">
+        <form class="sim2-in" id="accForm" novalidate>
+          <div class="field">
+            <label for="accPeriod">Periodo</label>
+            <select id="accPeriod"></select>
+          </div>
+          <div class="field">
+            <label for="accCap">Capital inicial</label>
+            <div class="money-in"><span aria-hidden="true">$</span><input id="accCap" type="text" inputmode="decimal" value="1,000" autocomplete="off" spellcheck="false" aria-describedby="accErr"></div>
+            <div class="quick" id="accQuick" role="group" aria-label="Capital rápido">
+              <button type="button" data-cap="500">$500</button>
+              <button type="button" data-cap="1000" aria-pressed="true">$1,000</button>
+              <button type="button" data-cap="5000">$5,000</button>
+              <button type="button" data-cap="10000">$10,000</button>
+            </div>
+            <p class="field-err" id="accErr" role="alert"></p>
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="accRisk">Riesgo por operación</label><output id="accRiskOut" for="accRisk" class="num">1 %</output></div>
+            <input id="accRisk" type="range" min="0.25" max="5" step="0.25" value="1">
+            <p class="field-hint num" id="accRiskHint"></p>
+          </div>
+          <div class="field">
+            <span class="lbl-like" id="accModeLbl">Cómo se calcula el riesgo</span>
+            <div class="seg" id="accMode" role="group" aria-labelledby="accModeLbl">
+              <button type="button" data-mode="fixed" aria-pressed="true">Fijo</button>
+              <button type="button" data-mode="comp" aria-pressed="false">Compuesto</button>
+            </div>
+            <p class="field-hint" id="accModeHint"></p>
+          </div>
+        </form>
+
+        <div class="sim2-out" aria-live="polite">
+          <div class="acc-top">
+            <div class="big-out">
+              <span class="lbl" id="accEndLbl">Saldo final</span>
+              <span class="val num" id="accEnd">$1,500.00</span>
+              <span class="sub num" id="accGain">+$500.00 · +50.0 %</span>
+            </div>
+          </div>
+          <svg class="acc-chart" id="accChart" viewBox="0 0 560 210" role="img" aria-label="Evolución del saldo"></svg>
+          <div class="acc-detail" id="accDetail"></div>
+          <p class="calc-note">Simulación con los resultados del backtest en replay. No incluye comisiones, spread ni deslizamiento, y no garantiza resultados futuros.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- ================= CALCULADORA ================= -->
   <section class="sec" id="calculadora">
@@ -1186,10 +1286,10 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   // month chips
   const seg = $('#perSeg');
   [ALL, ...MONTHS].forEach(m => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'mchip'; b.dataset.period = m.key; b.setAttribute('aria-label', `: ,  % de acierto,  trades`);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'mchip'; b.dataset.period = m.key; b.setAttribute('aria-label', `${m.name}: ${fmtR(netR(m))}, ${wrOf(m).toFixed(1)} % de acierto, ${m.tp} TP y ${m.sl} SL`);
     b.setAttribute('aria-pressed', String(m.key === 'all'));
     const r = netR(m);
-    b.innerHTML = `<span class="mn">${m.key === 'all' ? 'Total' : m.name.slice(0, 3)}</span><span class="mr" style="color: ${r >= 0 ? 'var(--tp)' : 'var(--sl)'}">${fmtR(r)}</span><span class="ms">${wrOf(m).toFixed(1)} %</span><span class="ms">${m.tp + m.sl} trades</span>`;
+    b.innerHTML = `<span class="mn">${m.key === 'all' ? 'Total' : m.name.slice(0, 3)}</span><span class="mr" style="color: ${r >= 0 ? 'var(--tp)' : 'var(--sl)'}">${fmtR(r)}</span><span class="ms">${wrOf(m).toFixed(1)} %</span><span class="ms"><b class="tpc">${m.tp} TP</b> · <b class="slc">${m.sl} SL</b></span>`;
     seg.append(b);
   });
 
@@ -1272,7 +1372,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
       total = drawLine([{ label: 'Inicio', v: 0 }, ...MONTHS.map(x => ({ label: x.name.slice(0, 3), v: (acc += netR(x)) }))]);
       $('#curveTitle').textContent = 'R acumulado por mes';
       $('#listCap').textContent = 'Resultado de cada mes';
-      MONTHS.forEach(x => list.append(chip(netR(x) >= 0 ? 'win' : 'loss', x.name.slice(0, 3).toUpperCase(), fmtR(netR(x)), wrOf(x).toFixed(1) + ' %')));
+      MONTHS.forEach(x => list.append(chip(netR(x) >= 0 ? 'win' : 'loss', x.name.slice(0, 3).toUpperCase(), fmtR(netR(x)), `${x.tp} TP · ${x.sl} SL`)));
     } else if (m.seq) {
       let acc = 0;
       total = drawLine([{ label: 'Inicio', v: 0 }, ...m.seq.map((t, i) => ({ label: 'T' + (i + 1), v: (acc += t ? 3 : -1) }))]);
@@ -1296,6 +1396,120 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     showPeriod(b.dataset.period);
   }));
   showPeriod('all');
+
+  /* ---------- account simulator: real monthly TP/SL applied to the viewer's capital ---------- */
+  const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  const fmtUsd = v => (v < 0 ? '−' : '') + usd.format(Math.abs(v));
+  const fmtUsdS = v => (v >= 0 ? '+' : '−') + usd.format(Math.abs(v));
+  const pctS = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + ' %';
+  const compact = v => { const a = Math.abs(v); return (v < 0 ? '−' : '') + (a >= 1e6 ? '$' + (a / 1e6).toFixed(2) + 'M' : a >= 1e4 ? '$' + (a / 1e3).toFixed(1) + 'k' : '$' + Math.round(a).toLocaleString('en-US')); };
+  const accPeriod = $('#accPeriod'), accCap = $('#accCap'), accRisk = $('#accRisk');
+  let accMode = 'fixed';
+  [ALL, ...MONTHS].forEach(m => { const o = document.createElement('option'); o.value = m.key; o.textContent = m.key === 'all' ? 'Los 10 meses (ene – oct 2026)' : m.month; accPeriod.append(o); });
+  accPeriod.value = 'all';
+  const parseCap = s => { const v = parseFloat(String(s).replace(/,/g, '').replace(/[^0-9.]/g, '')); return isFinite(v) ? v : NaN; };
+  // one month applied to a balance; fixed risk uses the initial capital, compound uses the running balance
+  function monthResult(m, bal, B0, r, mode) {
+    if (mode === 'fixed') return bal + B0 * r * netR(m);
+    return bal * Math.pow(1 + 3 * r, m.tp) * Math.pow(1 - r, m.sl);
+  }
+  function niceStep(range) { const raw = range / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+  function drawAccLine(points, B0) {
+    const svg = $('#accChart'); svg.replaceChildren();
+    const vals = points.map(p => p.v), lo0 = Math.min(B0, ...vals), hi0 = Math.max(B0, ...vals);
+    const step = niceStep(Math.max(hi0 - lo0, B0 * 0.02)), lo = Math.floor(lo0 / step) * step, hi = Math.ceil(hi0 / step) * step;
+    const X0 = 70, X1 = 548, Y0 = 170, Y1 = 22, last = points.length - 1;
+    const x = i => X0 + (X1 - X0) * i / Math.max(1, last), y = v => Y0 - (Y0 - Y1) * (v - lo) / Math.max(1e-9, hi - lo);
+    const g = svgEl('g', { 'font-family': MONO, 'font-size': 11, fill: COL.txt });
+    for (let v = lo; v <= hi + step / 2; v += step) {
+      g.append(svgEl('line', { x1: X0 - 6, x2: 556, y1: y(v), y2: y(v), stroke: COL.grid }));
+      g.append(svgEl('text', { x: 60, y: y(v) + 4, 'text-anchor': 'end' }, compact(v)));
+    }
+    g.append(svgEl('line', { x1: X0, x2: 556, y1: y(B0), y2: y(B0), stroke: COL.start, 'stroke-opacity': 0.5, 'stroke-dasharray': '4 4' }));
+    const many = points.length > 9;
+    points.forEach((p, i) => { if (!many || i % 2 === 0 || i === last) g.append(svgEl('text', { x: x(i), y: 200, 'text-anchor': i === last && last ? 'end' : i === 0 ? 'start' : 'middle' }, p.label)); });
+    svg.append(g);
+    let d = `M${x(0)} ${y(points[0].v)}`; points.forEach((p, i) => { if (i) d += ` L${x(i)} ${y(p.v)}`; });
+    svg.append(svgEl('path', { d: d + ` L${x(last)} ${Y0} L${x(0)} ${Y0} Z`, fill: 'url(#accArea)' }));
+    const defs = svgEl('defs', {}), lg = svgEl('linearGradient', { id: 'accArea', x1: 0, y1: 0, x2: 0, y2: 1 });
+    lg.append(svgEl('stop', { offset: 0, 'stop-color': COL.tp, 'stop-opacity': 0.28 }), svgEl('stop', { offset: 1, 'stop-color': COL.tp, 'stop-opacity': 0 }));
+    defs.append(lg); svg.prepend(defs);
+    const lines = svgEl('g', { 'stroke-width': 3, 'stroke-linecap': 'round' });
+    for (let i = 1; i <= last; i++) lines.append(svgEl('line', { x1: x(i - 1), y1: y(points[i - 1].v), x2: x(i), y2: y(points[i].v), stroke: points[i].v >= points[i - 1].v ? COL.tp : COL.sl }));
+    svg.append(lines);
+    const dots = svgEl('g', { 'stroke-width': 2.5 });
+    points.forEach((p, i) => { const up = i && p.v >= points[i - 1].v, col = i === 0 ? COL.start : up ? COL.tp : COL.sl; dots.append(svgEl('circle', { cx: x(i), cy: y(p.v), r: i === last ? 6 : 4, stroke: col, fill: i === last ? col : COL.void })); });
+    svg.append(dots);
+    svg.append(svgEl('text', { x: x(last), y: y(points[last].v) - 12, 'text-anchor': 'end', fill: points[last].v >= B0 ? COL.tp : COL.sl, 'font-family': MONO, 'font-size': 13, 'font-weight': 700 }, fmtUsd(points[last].v)));
+    svg.setAttribute('aria-label', 'Evolución del saldo: ' + points.map(p => `${p.label} ${fmtUsd(p.v)}`).join(', '));
+  }
+  function drawAccBars(B0, end) {
+    const svg = $('#accChart'); svg.replaceChildren();
+    const max = Math.max(B0, end), W = 330, X0 = 170;
+    [['Capital inicial', B0, COL.start], ['Saldo final', end, end >= B0 ? COL.tp : COL.sl]].forEach(([label, v, col], i) => {
+      const top = 44 + i * 74, w = Math.max(3, W * v / max);
+      svg.append(svgEl('text', { x: 4, y: top + 22, fill: COL.fg, 'font-family': 'Barlow, sans-serif', 'font-size': 18, 'font-weight': 700 }, label));
+      svg.append(svgEl('rect', { x: X0, y: top, width: W, height: 34, fill: COL.track }));
+      svg.append(svgEl('rect', { x: X0, y: top, width: w, height: 34, fill: col, 'fill-opacity': i ? 1 : 0.55 }));
+      svg.append(svgEl('text', { x: Math.min(X0 + w + 8, 556), y: top + 23, 'text-anchor': X0 + w + 8 > 470 ? 'end' : 'start', fill: i ? col : COL.fg, 'font-family': MONO, 'font-size': 14, 'font-weight': 700 }, fmtUsd(v)));
+    });
+    svg.setAttribute('aria-label', `Capital inicial ${fmtUsd(B0)}, saldo final ${fmtUsd(end)}`);
+  }
+  const accRow = (label, value, cls) => `<div class="acc-row"><span>${label}</span><b class="num ${cls || ''}">${value}</b></div>`;
+  function runSim() {
+    const B0 = parseCap(accCap.value), r = Number(accRisk.value) / 100, err = $('#accErr');
+    $('#accRiskOut').textContent = (Number(accRisk.value) % 1 ? Number(accRisk.value).toFixed(2).replace(/0$/, '') : accRisk.value) + ' %';
+    accRisk.style.setProperty('--fill', ((accRisk.value - accRisk.min) / (accRisk.max - accRisk.min) * 100) + '%');
+    $$('#accQuick button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.cap) === B0)));
+    if (!(B0 >= 10 && B0 <= 1e7)) { err.textContent = 'Escribe un capital entre $10 y $10,000,000.'; return; }
+    err.textContent = '';
+    const riskUsd = B0 * r;
+    $('#accRiskHint').textContent = accMode === 'fixed'
+      ? `= ${usd.format(riskUsd)} por operación · cada TP ${fmtUsdS(riskUsd * 3)} · cada SL ${fmtUsdS(-riskUsd)}`
+      : `= ${accRisk.value} % del saldo en cada operación (la primera arriesga ${usd.format(riskUsd)})`;
+    $('#accModeHint').textContent = accMode === 'fixed'
+      ? 'Fijo: arriesgas siempre el mismo monto, calculado sobre tu capital inicial.'
+      : 'Compuesto: el riesgo se recalcula sobre tu saldo en cada operación, así que crece cuando ganas y se reduce cuando pierdes.';
+    const key = accPeriod.value, m = key === 'all' ? ALL : MONTHS.find(x => x.key === key);
+    let end, detail = '';
+    if (key === 'all') {
+      let bal = B0; const pts = [{ label: 'Inicio', v: B0 }], res = [];
+      MONTHS.forEach(x => { const before = bal; bal = monthResult(x, bal, B0, r, accMode); res.push({ x, d: bal - before, bal }); pts.push({ label: x.name.slice(0, 3), v: bal }); });
+      end = bal; drawAccLine(pts, B0);
+      const bestD = Math.max(...res.map(o => o.d)), worstD = Math.min(...res.map(o => o.d));
+      const names = d => res.filter(o => Math.abs(o.d - d) < 0.005).map(o => o.x.name).join(' y ');
+      const best = { d: bestD, x: { name: names(bestD) } }, worst = { d: worstD, x: { name: names(worstD) } };
+      detail = `<div class="acc-table-wrap"><table class="acc-table"><thead><tr><th scope="col">Mes</th><th scope="col">TP</th><th scope="col">SL</th><th scope="col">Resultado</th><th scope="col">Saldo</th></tr></thead><tbody>`
+        + res.map(o => `<tr><td>${o.x.name}</td><td class="pos">${o.x.tp}</td><td class="neg">${o.x.sl}</td><td class="${o.d >= 0 ? 'pos' : 'neg'}">${fmtUsdS(o.d)}</td><td>${fmtUsd(o.bal)}</td></tr>`).join('')
+        + `</tbody></table></div>`
+        + `<div class="acc-rows">${accRow('Mejor mes', `${best.x.name} ${fmtUsdS(best.d)}`, 'pos')}${accRow('Peor mes', `${worst.x.name} ${fmtUsdS(worst.d)}`, worst.d >= 0 ? 'pos' : 'neg')}</div>`;
+    } else {
+      end = monthResult(m, B0, B0, r, accMode);
+      if (m.seq) {
+        let bal = B0; const pts = [{ label: 'Inicio', v: B0 }];
+        m.seq.forEach((t, i) => { const risk = accMode === 'fixed' ? B0 * r : bal * r; bal += t ? risk * 3 : -risk; pts.push({ label: 'T' + (i + 1), v: bal }); });
+        drawAccLine(pts, B0);
+      } else drawAccBars(B0, end);
+      if (accMode === 'fixed') {
+        detail = `<div class="acc-rows">${accRow(`${m.tp} TP × ${fmtUsdS(riskUsd * 3)}`, fmtUsdS(m.tp * riskUsd * 3), 'pos')}${accRow(`${m.sl} SL × ${fmtUsdS(-riskUsd)}`, fmtUsdS(-m.sl * riskUsd), 'neg')}${accRow('Resultado del mes', fmtUsdS(end - B0), end >= B0 ? 'pos' : 'neg')}</div>`;
+      } else {
+        detail = `<div class="acc-rows">${accRow('Operaciones', `${m.tp} TP · ${m.sl} SL`)}${accRow('Riesgo', `${accRisk.value} % del saldo`)}${accRow('Resultado del mes', fmtUsdS(end - B0), end >= B0 ? 'pos' : 'neg')}</div>`
+          + (m.seq ? '' : '<p class="field-hint">Con interés compuesto el saldo final no depende del orden de los trades, así que el resultado es exacto aunque el orden no esté registrado.</p>');
+      }
+    }
+    $('#accEndLbl').textContent = key === 'all' ? 'Saldo final tras 10 meses' : `Saldo final de ${m.name.toLowerCase()}`;
+    const endEl = $('#accEnd'); endEl.textContent = fmtUsd(end); endEl.className = 'val num ' + (end >= B0 ? 'pos' : 'neg');
+    $('#accGain').textContent = `${fmtUsdS(end - B0)} · ${pctS((end / B0 - 1) * 100)}`;
+    $('#accDetail').innerHTML = detail;
+  }
+  $('#accForm').addEventListener('submit', e => e.preventDefault());
+  accPeriod.addEventListener('change', runSim);
+  accRisk.addEventListener('input', runSim);
+  accCap.addEventListener('input', runSim);
+  accCap.addEventListener('blur', () => { const v = parseCap(accCap.value); if (v >= 10 && v <= 1e7) accCap.value = v.toLocaleString('en-US', { maximumFractionDigits: 2 }); });
+  $$('#accQuick button').forEach(b => b.addEventListener('click', () => { accCap.value = Number(b.dataset.cap).toLocaleString('en-US'); runSim(); }));
+  $$('#accMode button').forEach(b => b.addEventListener('click', () => { accMode = b.dataset.mode; $$('#accMode button').forEach(o => o.setAttribute('aria-pressed', String(o === b))); runSim(); }));
+  runSim();
 
   /* ---------- 1:3 calculator ---------- */
   const wr = $('#wr'), ntr = $('#ntr'), risk = $('#risk');
