@@ -102,7 +102,7 @@ p { margin: 0; }
 .brand { display: inline-flex; align-items: baseline; gap: 8px; text-decoration: none; }
 .mark { font-family: var(--f-mark); font-weight: 900; font-size: 26px; letter-spacing: 0.04em; color: var(--red); text-shadow: 0 0 18px rgba(229, 22, 46, 0.55); }
 .brand-ny { font-family: var(--f-mark); font-weight: 800; font-size: 13px; letter-spacing: 0.35em; color: var(--fg); }
-.nav-links { display: flex; gap: 22px; margin-left: 12px; }
+.nav-links { display: flex; gap: 20px; margin-left: 12px; }
 .nav-links a { white-space: nowrap; font: 600 14px/1 var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 8px 0; position: relative; }
 .nav-links a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 2px; background: var(--red); transition: right .2s ease; }
 .nav-links a:hover { color: var(--fg); }
@@ -271,13 +271,18 @@ p { margin: 0; }
 .curve-head h3 { font-size: 20px; text-transform: uppercase; }
 .curve-head span { font: 700 26px/1 var(--f-mono); color: var(--tp); }
 .curve { width: 100%; height: auto; }
-.trades { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.per-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 20px; }
+.per-note { color: var(--muted); font-size: 15px; max-width: 40em; }
+.res-grid.swap .tv-table td.v, .res-grid.swap .curve { animation: swapIn .45s ease; }
+@keyframes swapIn { from { opacity: .15; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.trades { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+.trades .m { font: 600 10px/1 var(--f-mono); color: var(--dim); letter-spacing: 0.08em; }
 .trades li { padding: 10px 8px; border: 1px solid var(--line); text-align: center; display: grid; gap: 6px; background: rgba(255, 255, 255, 0.02); }
 .trades .t { font: 600 11px/1 var(--f-mono); color: var(--dim); letter-spacing: 0.1em; }
 .trades .r { font: 700 16px/1 var(--f-mono); }
 .trades .win { color: var(--tp); border-color: rgba(34, 171, 148, 0.45); }
 .trades .loss { color: var(--sl); border-color: rgba(242, 54, 69, 0.45); }
-.reels { margin-top: clamp(36px, 5vw, 56px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.reels { margin-top: clamp(36px, 5vw, 56px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
 .reel { display: grid; gap: 12px; }
 .reel video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: #000; border: 1px solid var(--line-2); border-radius: 18px; }
 .reel h3 { font-size: 18px; text-transform: uppercase; }
@@ -387,7 +392,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .hero-grid, .ind-grid, .how-grid, .res-grid, .acc-grid, .final-in, .foot { grid-template-columns: minmax(0, 1fr); }
   .calc { grid-template-columns: minmax(0, 1fr); }
   .calc-out { border-left: 0; border-top: 1px solid var(--line); }
-  .reels { grid-template-columns: repeat(3, minmax(220px, 1fr)); overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+  .reels { grid-template-columns: repeat(4, minmax(220px, 1fr)); overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
   .reel { scroll-snap-align: start; }
   .giant { top: auto; bottom: 36%; right: -8vw; opacity: .55; }
 }
@@ -397,7 +402,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .nav-right .btn { display: none; }
   .ind-body { grid-template-columns: minmax(0, 1fr); }
   .specs div { grid-template-columns: 96px minmax(0, 1fr); }
-  .trades { grid-template-columns: repeat(5, minmax(56px, 1fr)); overflow-x: auto; }
+  .trades { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
   .tvdlg-body { grid-template-columns: minmax(0, 1fr); }
   .tvdlg-side { display: none; }
   .soc-grid { grid-template-columns: minmax(0, 1fr); }
@@ -406,7 +411,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .tape-track, .float-chip, .cursor-blink, .tvdlg-search .caret, .session.open .dot { animation: none !important; }
+  .tape-track, .float-chip, .cursor-blink, .tvdlg-search .caret, .session.open .dot, .res-grid.swap .tv-table td.v, .res-grid.swap .curve { animation: none !important; }
   .glitch::before, .glitch::after { display: none !important; }
   .btn, .soc, .giant, .phone { transition: none !important; }
 }
@@ -486,7 +491,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
 
       <div class="hero-media">
         <div class="phone" id="phone">
-          <video id="heroVideo" src="media/reel-historia.mp4" poster="media/reel-historia.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Reel de ELB NY: 5 trades del backtest de octubre"></video>
+          <video id="heroVideo" src="media/reel-septiembre.mp4" poster="media/reel-septiembre.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Reel de ELB NY: septiembre, de 33 % de acierto a +$1,200"></video>
           <button class="sound-btn" id="soundBtn" type="button" aria-pressed="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="soundWave" d="M17 9l4 6M21 9l-4 6"/></svg>
             <span id="soundLabel">Activar sonido</span>
@@ -494,7 +499,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
         </div>
         <span class="float-chip chip-tp num"><i></i>TP +3R</span>
         <span class="float-chip chip-sl num"><i></i>SL −1R</span>
-        <span class="float-chip chip-wr num"><i></i>Octubre: +7R</span>
+        <span class="float-chip chip-wr num"><i></i>Sep + Oct: +19R</span>
       </div>
     </div>
 
@@ -508,6 +513,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
           <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
           <span class="tape-item">Tabla de resultados <b>del mes</b></span>
+          <span class="tape-item">Backtest sep + oct <b>+19R</b></span>
           <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
         </div>
         <div class="tape-group">
@@ -518,6 +524,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
           <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
           <span class="tape-item">Tabla de resultados <b>del mes</b></span>
+          <span class="tape-item">Backtest sep + oct <b>+19R</b></span>
           <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
         </div>
       </div>
@@ -625,7 +632,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
 
         <div class="ticket sim">
           <div class="sim-bar">
-            <div class="seg" role="group" aria-label="Escenario">
+            <div class="seg" id="simSeg" role="group" aria-label="Escenario">
               <button type="button" data-kind="tp" aria-pressed="true">Llega al TP</button>
               <button type="button" data-kind="sl" aria-pressed="false">Toca el SL</button>
             </div>
@@ -649,88 +656,50 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     <div class="wrap">
       <header class="sec-head">
         <p class="kicker">ELB://backtest</p>
-        <h2>Octubre: 5 trades, +7R</h2>
-        <p>Replay de TradingView en NZDUSD de 7 minutos, primeros días de octubre de 2026. Ganó 3 y perdió 2. Con ratio 1:3, dos pérdidas no alcanzan a borrar una ganancia.</p>
+        <h2>2 meses: 13 trades, +19R</h2>
+        <p>Replay de TradingView en NZDUSD de 7 minutos: septiembre completo y los primeros días de octubre de 2026. Ganó 8 y perdió 5. Con ratio 1:3, cada TP cubre tres pérdidas.</p>
       </header>
+
+      <div class="per-bar">
+        <div class="seg" id="perSeg" role="group" aria-label="Periodo">
+          <button type="button" data-period="all" aria-pressed="true">Total</button>
+          <button type="button" data-period="sep" aria-pressed="false">Septiembre</button>
+          <button type="button" data-period="oct" aria-pressed="false">Octubre</button>
+        </div>
+        <p class="per-note" id="perNote">Septiembre empezó con 33 % de acierto tras 3 trades y terminó en +12R.</p>
+      </div>
 
       <div class="res-grid">
         <div class="ticket table-wrap">
-          <table class="tv-table" aria-label="Tabla de resultados del indicador, octubre de 2026">
-            <thead><tr><th scope="col">Mes actual</th><th scope="col">Octubre 2026</th></tr></thead>
+          <table class="tv-table" id="resTable" aria-label="Tabla de resultados del indicador">
+            <thead><tr><th scope="col" id="rtHead">Acumulado</th><th scope="col" id="rtMonth">Sep + Oct 2026</th></tr></thead>
             <tbody>
-              <tr><td>Trades mes</td><td class="v white">5</td></tr>
-              <tr><td>TP mes</td><td class="v teal">3</td></tr>
-              <tr><td>SL mes</td><td class="v red">2</td></tr>
-              <tr><td>Winrate mes</td><td class="v teal">60.0 %</td></tr>
-              <tr><td>R neto mes</td><td class="v teal">7.00 R</td></tr>
-              <tr><td>Beneficio mes</td><td class="v teal">$700.00 USD</td></tr>
+              <tr><td id="rtL0">Trades</td><td class="v white" id="rtTrades">13</td></tr>
+              <tr><td id="rtL1">TP</td><td class="v teal" id="rtTp">8</td></tr>
+              <tr><td id="rtL2">SL</td><td class="v red" id="rtSl">5</td></tr>
+              <tr><td id="rtL3">Winrate</td><td class="v teal" id="rtWr">61.5 %</td></tr>
+              <tr><td id="rtL4">R neto</td><td class="v teal" id="rtR">19.00 R</td></tr>
+              <tr><td id="rtL5">Beneficio</td><td class="v teal" id="rtBen">$1900.00 USD</td></tr>
             </tbody>
           </table>
-          <p class="table-note">Así aparece en el gráfico. Beneficio calculado con $100 de riesgo por operación.</p>
+          <p class="table-note">Así aparece en el gráfico, mes por mes. Beneficio calculado con $100 de riesgo por operación.</p>
         </div>
 
         <div class="ticket curve-wrap">
-          <div class="curve-head"><h3>R acumulado</h3><span class="num">+7R</span></div>
-          <svg class="curve" viewBox="0 0 640 250" role="img" aria-label="Curva de R acumulado: 0, 3, 6, 5, 4 y 7 R tras cada uno de los 5 trades">
-            <defs>
-              <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22ab94" stop-opacity="0.35"/><stop offset="1" stop-color="#22ab94" stop-opacity="0"/></linearGradient>
-            </defs>
-            <g font-family="JetBrains Mono, monospace" font-size="12" fill="#75646b">
-              <line x1="60" y1="200" x2="620" y2="200" stroke="#42262f" stroke-dasharray="4 4"/>
-              <line x1="60" y1="160" x2="620" y2="160" stroke="#2d1d23"/>
-              <line x1="60" y1="120" x2="620" y2="120" stroke="#2d1d23"/>
-              <line x1="60" y1="80" x2="620" y2="80" stroke="#2d1d23"/>
-              <line x1="60" y1="40" x2="620" y2="40" stroke="#2d1d23"/>
-              <text x="48" y="204" text-anchor="end">0R</text>
-              <text x="48" y="164" text-anchor="end">2R</text>
-              <text x="48" y="124" text-anchor="end">4R</text>
-              <text x="48" y="84" text-anchor="end">6R</text>
-              <text x="48" y="44" text-anchor="end">8R</text>
-              <text x="70" y="232" text-anchor="middle">Inicio</text>
-              <text x="180" y="232" text-anchor="middle">T1</text>
-              <text x="290" y="232" text-anchor="middle">T2</text>
-              <text x="400" y="232" text-anchor="middle">T3</text>
-              <text x="510" y="232" text-anchor="middle">T4</text>
-              <text x="610" y="232" text-anchor="end">T5</text>
-            </g>
-            <path d="M70 200 L180 140 L290 80 L400 100 L510 120 L610 60 L610 200 Z" fill="url(#area)"/>
-            <g stroke-width="4" stroke-linecap="round">
-              <line x1="70" y1="200" x2="180" y2="140" stroke="#22ab94"/>
-              <line x1="180" y1="140" x2="290" y2="80" stroke="#22ab94"/>
-              <line x1="290" y1="80" x2="400" y2="100" stroke="#f23645"/>
-              <line x1="400" y1="100" x2="510" y2="120" stroke="#f23645"/>
-              <line x1="510" y1="120" x2="610" y2="60" stroke="#22ab94"/>
-            </g>
-            <g fill="#0b0809" stroke-width="3">
-              <circle cx="70" cy="200" r="6" stroke="#ab9aa0"/>
-              <circle cx="180" cy="140" r="6" stroke="#22ab94"/>
-              <circle cx="290" cy="80" r="6" stroke="#22ab94"/>
-              <circle cx="400" cy="100" r="6" stroke="#f23645"/>
-              <circle cx="510" cy="120" r="6" stroke="#f23645"/>
-              <circle cx="610" cy="60" r="8" stroke="#22ab94" fill="#22ab94"/>
-            </g>
-            <g font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" text-anchor="middle">
-              <text x="180" y="124" fill="#22ab94">3R</text>
-              <text x="290" y="64" fill="#22ab94">6R</text>
-              <text x="400" y="86" fill="#f23645">5R</text>
-              <text x="510" y="106" fill="#f23645">4R</text>
-              <text x="610" y="40" fill="#22ab94" text-anchor="end">7R</text>
-            </g>
-          </svg>
-          <ol class="trades" aria-label="Resultado de cada trade">
-            <li class="win"><span class="t">TRADE 1</span><span class="r">+3R</span></li>
-            <li class="win"><span class="t">TRADE 2</span><span class="r">+3R</span></li>
-            <li class="loss"><span class="t">TRADE 3</span><span class="r">−1R</span></li>
-            <li class="loss"><span class="t">TRADE 4</span><span class="r">−1R</span></li>
-            <li class="win"><span class="t">TRADE 5</span><span class="r">+3R</span></li>
-          </ol>
+          <div class="curve-head"><h3>R acumulado</h3><span class="num" id="curveTotal">+19R</span></div>
+          <svg class="curve" id="curve" viewBox="0 0 640 260" role="img" aria-label="Curva de R acumulado tras cada trade"></svg>
+          <ol class="trades" id="tradeList" aria-label="Resultado de cada trade"></ol>
         </div>
       </div>
 
       <div class="reels" id="reels">
         <figure class="reel">
+          <video src="media/reel-septiembre.mp4" poster="media/reel-septiembre.jpg" controls playsinline preload="none"></video>
+          <figcaption><h3>Septiembre: tranquilisimamente</h3><p>De 33 % de acierto a 4 TP seguidos y +$1,200.</p></figcaption>
+        </figure>
+        <figure class="reel">
           <video src="media/reel-historia.mp4" poster="media/reel-historia.jpg" controls playsinline preload="none"></video>
-          <figcaption><h3>Perdí 2 de 5 y gané +$700</h3><p>Los 5 trades del backtest, uno por uno, con la tabla actualizándose.</p></figcaption>
+          <figcaption><h3>Perdí 2 de 5 y gané +$700</h3><p>Los 5 trades de octubre, uno por uno, con la tabla actualizándose.</p></figcaption>
         </figure>
         <figure class="reel">
           <video src="media/reel-tp-o-sl.mp4" poster="media/reel-tp-o-sl.jpg" controls playsinline preload="none"></video>
@@ -889,7 +858,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
         </details>
         <details>
           <summary>¿Los resultados están garantizados?</summary>
-          <div>No. Los números de esta página salen de un backtest en replay de 5 operaciones. Pruébalo primero en una cuenta demo y arriesga solo lo que puedas perder. Nada de esto es consejo financiero.</div>
+          <div>No. Los números de esta página salen de un backtest en replay de 13 operaciones (septiembre y principios de octubre de 2026). Pruébalo primero en una cuenta demo y arriesga solo lo que puedas perder. Nada de esto es consejo financiero.</div>
         </details>
       </div>
     </div>
@@ -975,15 +944,17 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
       let txt;
       if (weekday && now >= OPEN && now < CLOSE) {
         sessionEl.classList.add('open');
-        txt = `NY abierta <span class="txt-long">· cierra en ${fmtDur(CLOSE - now)}</span>`;
+        txt = `NY abierta|Cierra en ${fmtDur(CLOSE - now)}`;
       } else {
         sessionEl.classList.remove('open');
         let mins;
         if (weekday && now < OPEN) mins = OPEN - now;
         else { let add = 1; while (![1, 2, 3, 4, 5].includes((wd + add) % 7)) add++; mins = add * 1440 - now + OPEN; }
-        txt = `NY cerrada <span class="txt-long">· abre en ${fmtDur(mins)}</span>`;
+        txt = `NY cerrada|Abre en ${fmtDur(mins)}`;
       }
-      sessionText.innerHTML = `${txt} <span class="txt-long">· ${clock}</span>`;
+      const [short, detail] = txt.split('|');
+      sessionText.textContent = short;
+      sessionEl.title = `Sesión de Nueva York, 08:00 a 17:00 ET. ${detail}. Ahora: ${clock}`;
     } catch (e) { sessionText.textContent = 'Sesión NY 08:00–17:00 ET'; }
   }
   updateSession(); setInterval(updateSession, 30000);
@@ -1153,8 +1124,8 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     };
     requestAnimationFrame(step);
   }
-  $$('.seg button').forEach(b => b.addEventListener('click', () => {
-    $$('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+  $$('#simSeg button').forEach(b => b.addEventListener('click', () => {
+    $$('#simSeg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
     sim.kind = b.dataset.kind; sim.playing = false; playSim();
   }));
   $('#simPlay').addEventListener('click', () => { sim.playing = false; playSim(); });
@@ -1162,6 +1133,92 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   document.fonts && document.fonts.ready.then(drawSim);
   drawSim();
   new IntersectionObserver((es, ob) => { if (es[0].isIntersecting) { ob.disconnect(); playSim(); } }, { threshold: 0.5 }).observe(simCanvas);
+
+  /* ---------- backtest results: period toggle, TradingView table, R curve ---------- */
+  // 1 = TP (+3R), 0 = SL (−1R), in the order they happened on the replay.
+  const SEP = [0, 1, 0, 1, 1, 1, 1, 0], OCT = [1, 1, 0, 0, 1];
+  const PERIODS = {
+    all: { head: 'Acumulado', month: 'Sep + Oct 2026', suffix: '', trades: [...SEP.map(r => ({ r, m: 'SEP' })), ...OCT.map(r => ({ r, m: 'OCT' }))],
+      note: 'Septiembre empezó con 33 % de acierto tras 3 trades y terminó en +12R. Octubre sumó otros +7R.' },
+    sep: { head: 'Mes actual', month: 'Septiembre 2026', suffix: ' mes', trades: SEP.map(r => ({ r, m: 'SEP' })),
+      note: 'Arrancó con SL, TP, SL: 33 % de acierto. Luego llegaron 4 TP seguidos.' },
+    oct: { head: 'Mes actual', month: 'Octubre 2026', suffix: ' mes', trades: OCT.map(r => ({ r, m: 'OCT' })),
+      note: 'Dos TP, dos SL y un TP final: 60 % de acierto y +7R.' },
+  };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const svgEl = (tag, attrs, text) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+  const COL = { tp: '#22ab94', sl: '#f23645', grid: '#2d1d23', zero: '#42262f', txt: '#75646b', start: '#ab9aa0', void: '#0b0809' };
+  function drawCurve(trades) {
+    const svg = $('#curve'); svg.replaceChildren();
+    const cum = [0]; trades.forEach(t => cum.push(cum[cum.length - 1] + (t.r ? 3 : -1)));
+    const lo = Math.min(0, ...cum), hi = Math.max(...cum);
+    const range = Math.max(1, hi - lo), step = range <= 8 ? 2 : range <= 16 ? 4 : 5;
+    const vMin = Math.floor(lo / step) * step, vMax = Math.ceil(hi / step) * step + (hi % step === 0 ? step : 0);
+    const X0 = 64, X1 = 612, Y0 = 210, Y1 = 30;
+    const x = i => X0 + (X1 - X0) * i / (cum.length - 1), y = v => Y0 - (Y0 - Y1) * (v - vMin) / (vMax - vMin);
+    const g = svgEl('g', { 'font-family': 'JetBrains Mono, monospace', 'font-size': '12', fill: COL.txt });
+    for (let v = vMin; v <= vMax; v += step) {
+      g.append(svgEl('line', { x1: X0 - 6, x2: 624, y1: y(v), y2: y(v), stroke: v === 0 ? COL.zero : COL.grid, 'stroke-dasharray': v === 0 ? '4 4' : '' }));
+      g.append(svgEl('text', { x: 52, y: y(v) + 4, 'text-anchor': 'end' }, v + 'R'));
+    }
+    const many = cum.length > 9;
+    cum.forEach((_, i) => { if (!many || i % 2 === 0 || i === cum.length - 1) g.append(svgEl('text', { x: x(i), y: 246, 'text-anchor': i === cum.length - 1 ? 'end' : 'middle', 'font-size': many ? '11' : '12' }, i === 0 ? 'Inicio' : 'T' + i)); });
+    svg.append(g);
+    const defs = svgEl('defs', {}); const lg = svgEl('linearGradient', { id: 'area', x1: 0, y1: 0, x2: 0, y2: 1 });
+    lg.append(svgEl('stop', { offset: 0, 'stop-color': COL.tp, 'stop-opacity': 0.35 }), svgEl('stop', { offset: 1, 'stop-color': COL.tp, 'stop-opacity': 0 }));
+    defs.append(lg); svg.append(defs);
+    let d = `M${x(0)} ${y(0)}`; cum.forEach((v, i) => { if (i) d += ` L${x(i)} ${y(v)}`; }); d += ` L${x(cum.length - 1)} ${y(0)} Z`;
+    svg.append(svgEl('path', { d, fill: 'url(#area)' }));
+    const lines = svgEl('g', { 'stroke-width': many ? 3 : 4, 'stroke-linecap': 'round' });
+    for (let i = 1; i < cum.length; i++) lines.append(svgEl('line', { x1: x(i - 1), y1: y(cum[i - 1]), x2: x(i), y2: y(cum[i]), stroke: cum[i] > cum[i - 1] ? COL.tp : COL.sl }));
+    svg.append(lines);
+    // month divider when both months are shown
+    const firstOct = trades.findIndex(t => t.m === 'OCT');
+    if (firstOct > 0) {
+      const xd = (x(firstOct) + x(firstOct + 0)) / 2;
+      svg.append(svgEl('line', { x1: xd, x2: xd, y1: Y1 - 10, y2: Y0 + 6, stroke: '#ab9aa0', 'stroke-opacity': 0.35, 'stroke-dasharray': '3 5' }));
+      svg.append(svgEl('text', { x: xd - 6, y: Y1 - 14, 'text-anchor': 'end', 'font-family': 'JetBrains Mono, monospace', 'font-size': '11', fill: '#ab9aa0' }, 'SEP'));
+      svg.append(svgEl('text', { x: xd + 6, y: Y1 - 14, 'font-family': 'JetBrains Mono, monospace', 'font-size': '11', fill: '#ab9aa0' }, 'OCT'));
+    }
+    const dots = svgEl('g', { 'stroke-width': 3 });
+    cum.forEach((v, i) => {
+      const last = i === cum.length - 1, up = i && v > cum[i - 1], col = i === 0 ? COL.start : up ? COL.tp : COL.sl;
+      dots.append(svgEl('circle', { cx: x(i), cy: y(v), r: last ? 8 : many ? 5 : 6, stroke: col, fill: last ? col : COL.void }));
+    });
+    svg.append(dots);
+    const labels = svgEl('g', { 'font-family': 'JetBrains Mono, monospace', 'font-size': many ? '11' : '13', 'font-weight': 700, 'text-anchor': 'middle' });
+    cum.forEach((v, i) => {
+      if (!i) return; const up = v > cum[i - 1];
+      labels.append(svgEl('text', { x: x(i), y: up ? y(v) - 14 : y(v) + 22, fill: up ? COL.tp : COL.sl, 'text-anchor': i === cum.length - 1 ? 'end' : 'middle' }, v + 'R'));
+    });
+    svg.append(labels);
+    svg.setAttribute('aria-label', 'Curva de R acumulado: ' + cum.join(', ') + ' R tras cada trade');
+    return cum[cum.length - 1];
+  }
+  function showPeriod(key) {
+    const P = PERIODS[key], n = P.trades.length, tp = P.trades.filter(t => t.r).length, sl = n - tp, r = tp * 3 - sl;
+    $('#rtHead').textContent = P.head; $('#rtMonth').textContent = P.month;
+    ['Trades', 'TP', 'SL', 'Winrate', 'R neto', 'Beneficio'].forEach((l, i) => { $('#rtL' + i).textContent = l + P.suffix; });
+    $('#rtTrades').textContent = n; $('#rtTp').textContent = tp; $('#rtSl').textContent = sl;
+    const wrEl = $('#rtWr'); wrEl.textContent = (tp / n * 100).toFixed(1) + ' %'; wrEl.className = 'v ' + (tp / n >= 0.5 ? 'teal' : 'red');
+    $('#rtR').textContent = r.toFixed(2) + ' R'; $('#rtBen').textContent = '$' + (r * 100).toFixed(2) + ' USD';
+    $('#resTable').setAttribute('aria-label', 'Tabla de resultados del indicador, ' + P.month);
+    const total = drawCurve(P.trades);
+    $('#curveTotal').textContent = (total >= 0 ? '+' : '−') + Math.abs(total) + 'R';
+    const list = $('#tradeList'); list.replaceChildren();
+    P.trades.forEach((t, i) => {
+      const li = document.createElement('li'); li.className = t.r ? 'win' : 'loss';
+      li.innerHTML = `<span class="t">TRADE ${i + 1}</span><span class="r">${t.r ? '+3R' : '−1R'}</span>${key === 'all' ? `<span class="m">${t.m}</span>` : ''}`;
+      list.append(li);
+    });
+    $('#perNote').textContent = P.note;
+    const grid = $('#resultados .res-grid'); grid.classList.remove('swap'); void grid.offsetWidth; grid.classList.add('swap');
+  }
+  $$('#perSeg button').forEach(b => b.addEventListener('click', () => {
+    $$('#perSeg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    showPeriod(b.dataset.period);
+  }));
+  showPeriod('all');
 
   /* ---------- 1:3 calculator ---------- */
   const wr = $('#wr'), ntr = $('#ntr'), risk = $('#risk');
