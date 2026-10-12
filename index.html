@@ -271,7 +271,9 @@ p { margin: 0; }
 .curve-head h3 { font-size: 20px; text-transform: uppercase; }
 .curve-head span { font: 700 26px/1 var(--f-mono); color: var(--tp); }
 .curve { width: 100%; height: auto; }
-.months { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+.months { display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(5, minmax(0, 1fr)); gap: 8px; }
+.mchip[data-period="all"] { grid-row: span 2; align-content: center; gap: 8px; }
+.mchip[data-period="all"] .mr { font-size: clamp(28px, 3.4vw, 40px); }
 .mchip {
   position: relative; display: grid; gap: 6px; text-align: left; cursor: pointer; color: var(--fg);
   padding: 14px 14px 12px; background: var(--panel); border: 1px solid var(--line);
@@ -406,7 +408,8 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .hero-grid, .ind-grid, .how-grid, .res-grid, .acc-grid, .final-in, .foot { grid-template-columns: minmax(0, 1fr); }
   .calc { grid-template-columns: minmax(0, 1fr); }
   .calc-out { border-left: 0; border-top: 1px solid var(--line); }
-  .months { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .months { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .mchip[data-period="all"] { grid-column: 1 / -1; grid-row: auto; }
   .reels { grid-template-columns: repeat(4, minmax(220px, 1fr)); overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
   .reel { scroll-snap-align: start; }
   .giant { top: auto; bottom: 36%; right: -8vw; opacity: .55; }
@@ -418,7 +421,8 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   .ind-body { grid-template-columns: minmax(0, 1fr); }
   .specs div { grid-template-columns: 96px minmax(0, 1fr); }
   .trades { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); }
-  .months { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mchip { padding: 10px 8px 9px; }
+  .mchip .ms + .ms { display: none; }
   .tvdlg-body { grid-template-columns: minmax(0, 1fr); }
   .tvdlg-side { display: none; }
   .soc-grid { grid-template-columns: minmax(0, 1fr); }
@@ -515,7 +519,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
         </div>
         <span class="float-chip chip-tp num"><i></i>TP +3R</span>
         <span class="float-chip chip-sl num"><i></i>SL −1R</span>
-        <span class="float-chip chip-wr num"><i></i>7 meses: +39R</span>
+        <span class="float-chip chip-wr num"><i></i>10 meses: +50R</span>
       </div>
     </div>
 
@@ -529,7 +533,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
           <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
           <span class="tape-item">Tabla de resultados <b>del mes</b></span>
-          <span class="tape-item">Backtest abr–oct <b>+39R</b></span>
+          <span class="tape-item">Backtest ene–oct <b>+50R</b></span>
           <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
         </div>
         <div class="tape-group">
@@ -540,7 +544,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <span class="tape-item">Riesgo / beneficio <b>1:3</b></span>
           <span class="tape-item">Entrada · SL · TP <b>trazados</b></span>
           <span class="tape-item">Tabla de resultados <b>del mes</b></span>
-          <span class="tape-item">Backtest abr–oct <b>+39R</b></span>
+          <span class="tape-item">Backtest ene–oct <b>+50R</b></span>
           <span class="tape-item">Acceso gratis <b>hasta el 31/12</b></span>
         </div>
       </div>
@@ -672,8 +676,8 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     <div class="wrap">
       <header class="sec-head">
         <p class="kicker">ELB://backtest</p>
-        <h2>7 meses: 61 trades, +39R</h2>
-        <p>Backtest en el replay de TradingView, de abril a octubre de 2026. Ganó 25 y perdió 36: acertó el 41 % y aun así sumó +39R, porque cada TP paga tres veces lo que cuesta un SL. Seis de siete meses cerraron en positivo; mayo fue el único negativo (−5R).</p>
+        <h2>10 meses: 90 trades, +50R</h2>
+        <p>Backtest en el replay de TradingView, de enero a octubre de 2026. Ganó 35 y perdió 55: acertó el 38.9 % y aun así sumó +50R, porque cada TP paga tres veces lo que cuesta un SL. Ocho de diez meses cerraron en positivo; marzo (−3R) y mayo (−5R) fueron los negativos.</p>
       </header>
 
       <div class="months" id="perSeg" role="group" aria-label="Elegir periodo"></div>
@@ -682,21 +686,21 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
       <div class="res-grid">
         <div class="ticket table-wrap">
           <table class="tv-table" id="resTable" aria-label="Tabla de resultados del indicador">
-            <thead><tr><th scope="col" id="rtHead">Acumulado</th><th scope="col" id="rtMonth">Abr – Oct 2026</th></tr></thead>
+            <thead><tr><th scope="col" id="rtHead">Acumulado</th><th scope="col" id="rtMonth">Ene – Oct 2026</th></tr></thead>
             <tbody>
-              <tr><td id="rtL0">Trades</td><td class="v white" id="rtTrades">61</td></tr>
-              <tr><td id="rtL1">TP</td><td class="v teal" id="rtTp">25</td></tr>
-              <tr><td id="rtL2">SL</td><td class="v red" id="rtSl">36</td></tr>
-              <tr><td id="rtL3">Winrate</td><td class="v red" id="rtWr">41.0 %</td></tr>
-              <tr><td id="rtL4">R neto</td><td class="v teal" id="rtR">39.00 R</td></tr>
-              <tr><td id="rtL5">Beneficio</td><td class="v teal" id="rtBen">$3900.00 USD</td></tr>
+              <tr><td id="rtL0">Trades</td><td class="v white" id="rtTrades">90</td></tr>
+              <tr><td id="rtL1">TP</td><td class="v teal" id="rtTp">35</td></tr>
+              <tr><td id="rtL2">SL</td><td class="v red" id="rtSl">55</td></tr>
+              <tr><td id="rtL3">Winrate</td><td class="v red" id="rtWr">38.9 %</td></tr>
+              <tr><td id="rtL4">R neto</td><td class="v teal" id="rtR">50.00 R</td></tr>
+              <tr><td id="rtL5">Beneficio</td><td class="v teal" id="rtBen">$5000.00 USD</td></tr>
             </tbody>
           </table>
           <p class="table-note">Así aparece en el gráfico, mes por mes. Beneficio calculado con $100 de riesgo por operación.</p>
         </div>
 
         <div class="ticket curve-wrap">
-          <div class="curve-head"><h3 id="curveTitle">R acumulado por mes</h3><span class="num" id="curveTotal">+39R</span></div>
+          <div class="curve-head"><h3 id="curveTitle">R acumulado por mes</h3><span class="num" id="curveTotal">+50R</span></div>
           <svg class="curve" id="curve" viewBox="0 0 640 260" role="img" aria-label="Curva de R acumulado"></svg>
           <p class="list-cap" id="listCap"></p>
           <ol class="trades" id="tradeList" aria-label="Resultado de cada trade"></ol>
@@ -730,7 +734,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
       <header class="sec-head">
         <p class="kicker">ELB://ratio-1-3</p>
         <h2>¿Por qué 1:3?</h2>
-        <p>Cada TP paga tres veces lo que arriesga cada SL. Con eso, acertar más de 1 de cada 4 operaciones ya deja el resultado en positivo. El control arranca en 41 %, el winrate real de mis 7 meses de backtest. Muévelo y compruébalo.</p>
+        <p>Cada TP paga tres veces lo que arriesga cada SL. Con eso, acertar más de 1 de cada 4 operaciones ya deja el resultado en positivo. El control arranca en 39 %, el winrate real de mis 10 meses de backtest. Muévelo y compruébalo.</p>
       </header>
 
       <div class="ticket calc">
@@ -738,7 +742,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
           <div class="field">
             <div class="field-top"><label for="wr">Winrate</label><output id="wrOut" for="wr" class="num">60 %</output></div>
             <div class="range-wrap">
-              <input id="wr" type="range" min="10" max="90" step="1" value="41" aria-describedby="beNote">
+              <input id="wr" type="range" min="10" max="90" step="1" value="39" aria-describedby="beNote">
               <span class="be-mark" id="beMark" aria-hidden="true"><span>Equilibrio 25 %</span></span>
             </div>
           </div>
@@ -869,7 +873,7 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
         </details>
         <details>
           <summary>¿Los resultados están garantizados?</summary>
-          <div>No. Los números de esta página salen de un backtest en replay de 61 operaciones, de abril a octubre de 2026. Pruébalo primero en una cuenta demo y arriesga solo lo que puedas perder. Nada de esto es consejo financiero.</div>
+          <div>No. Los números de esta página salen de un backtest en replay de 90 operaciones, de enero a octubre de 2026. Pruébalo primero en una cuenta demo y arriesga solo lo que puedas perder. Nada de esto es consejo financiero.</div>
         </details>
       </div>
     </div>
@@ -1148,10 +1152,16 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   /* ---------- backtest results: month chips, TradingView table, charts ---------- */
   // Monthly totals come from the indicator's table. Trade order is only known where the replay was recorded (1 = TP +3R, 0 = SL −1R).
   const MONTHS = [
+    { key: 'ene', name: 'Enero', month: 'Enero 2026', tp: 2, sl: 4, seq: null,
+      note: 'Enero: 2 TP y 4 SL, 33.3 % de acierto, y aun así +2R.' },
+    { key: 'feb', name: 'Febrero', month: 'Febrero 2026', tp: 6, sl: 6, seq: null,
+      note: 'Febrero: mitad y mitad, 6 TP y 6 SL. Con 50 % de acierto y ratio 1:3 el mes cerró en +12R.' },
+    { key: 'mar', name: 'Marzo', month: 'Marzo 2026', tp: 2, sl: 9, seq: null,
+      note: 'Marzo cerró en −3R: 2 TP en 11 operaciones (18.2 % de acierto). Aun en un mes así la pérdida queda acotada.' },
     { key: 'abr', name: 'Abril', month: 'Abril 2026', tp: 6, sl: 7, seq: null,
       note: 'Abril: 6 TP y 7 SL, 46.2 % de acierto y +11R.' },
     { key: 'may', name: 'Mayo', month: 'Mayo 2026', tp: 1, sl: 8, seq: null,
-      note: 'Mayo fue el único mes negativo: 1 TP en 9 operaciones (11 % de acierto) y −5R. Así se ve un mes malo con ratio 1:3: la pérdida queda acotada.' },
+      note: 'Mayo fue el peor mes: 1 TP en 9 operaciones (11 % de acierto) y −5R. Así se ve un mes malo con ratio 1:3: la pérdida queda acotada.' },
     { key: 'jun', name: 'Junio', month: 'Junio 2026', tp: 3, sl: 4, seq: null,
       note: 'Junio: ganó 3 de 7 operaciones (42.9 %) y aun así cerró en +5R.' },
     { key: 'jul', name: 'Julio', month: 'Julio 2026', tp: 3, sl: 7, seq: null,
@@ -1163,8 +1173,8 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     { key: 'oct', name: 'Octubre', month: 'Octubre 2026', tp: 3, sl: 2, seq: [1, 1, 0, 0, 1],
       note: 'Octubre, primeros días: dos TP, dos SL y un TP final para +7R. Replay en NZDUSD de 7 minutos.' },
   ];
-  const ALL = { key: 'all', name: 'Total', month: 'Abr – Oct 2026', tp: MONTHS.reduce((a, m) => a + m.tp, 0), sl: MONTHS.reduce((a, m) => a + m.sl, 0),
-    note: 'Seis de siete meses cerraron en positivo. El winrate total es 41 %: se pierden casi 6 de cada 10 operaciones y la cuenta igual crece +39R.' };
+  const ALL = { key: 'all', name: 'Total', month: 'Ene – Oct 2026', tp: MONTHS.reduce((a, m) => a + m.tp, 0), sl: MONTHS.reduce((a, m) => a + m.sl, 0),
+    note: 'Ocho de diez meses cerraron en positivo. El winrate total es 38.9 %: se pierden 6 de cada 10 operaciones y la cuenta igual crece +50R.' };
   const netR = m => m.tp * 3 - m.sl;
   const wrOf = m => m.tp / (m.tp + m.sl) * 100;
   const fmtR = v => (v >= 0 ? '+' : '−') + Math.abs(v) + 'R';
