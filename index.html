@@ -325,6 +325,22 @@ p { margin: 0; }
 .acc-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--line-2); font-weight: 600; }
 .acc-row b { font: 700 16px/1.3 var(--f-mono); text-align: right; }
 .nav-right .btn { white-space: nowrap; }
+/* reward (TP multiple): locked at 1:3 until the checkbox is ticked */
+.reward label[for="accReward"] { display: inline-flex; align-items: center; gap: 8px; }
+.lock-ico { display: inline-grid; width: 16px; height: 16px; color: var(--red-hot); }
+.lock-ico svg { grid-area: 1 / 1; width: 16px; height: 16px; }
+.reward[data-locked="true"] .ico-open, .reward[data-locked="false"] .ico-closed { visibility: hidden; }
+.reward[data-locked="false"] .lock-ico { color: var(--tp); }
+#accReward:disabled { cursor: not-allowed; opacity: 0.45; filter: grayscale(0.6); }
+.reward[data-locked="true"] #accRewardOut { color: var(--muted); }
+.check { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; user-select: none; justify-self: start; }
+.check input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.check .box { width: 24px; height: 24px; display: grid; place-items: center; border: 2px solid var(--line-2); background: #0d090a; color: transparent; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+.check .box svg { width: 18px; height: 18px; }
+.check:hover .box { border-color: var(--red); }
+.check input:checked + .box { background: var(--red); border-color: var(--red); color: #fff; }
+.check input:focus-visible + .box { outline: 2px solid var(--red-hot); outline-offset: 3px; }
+.reward-warn { color: var(--gold, #f5c451); }
 
 .res-grid.swap .tv-table td.v, .res-grid.swap .curve { animation: swapIn .45s ease; }
 @keyframes swapIn { from { opacity: .15; transform: translateY(4px); } to { opacity: 1; transform: none; } }
@@ -800,6 +816,19 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
             <div class="field-top"><label for="accRisk">Riesgo por operación</label><output id="accRiskOut" for="accRisk" class="num">1 %</output></div>
             <input id="accRisk" type="range" min="0.25" max="5" step="0.25" value="1">
             <p class="field-hint num" id="accRiskHint"></p>
+          </div>
+          <div class="field reward" id="accRewardField" data-locked="true">
+            <div class="field-top">
+              <label for="accReward"><span class="lock-ico" aria-hidden="true"><svg class="ico-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="10" width="16" height="11" rx="1"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><svg class="ico-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="10" width="16" height="11" rx="1"/><path d="M8 10V7a4 4 0 0 1 7.6-1.8"/></svg></span>Beneficio por TP</label>
+              <output id="accRewardOut" for="accReward" class="num">1:3</output>
+            </div>
+            <input id="accReward" type="range" min="1" max="5" step="0.25" value="3" disabled aria-describedby="accRewardHint">
+            <label class="check" for="accRewardUnlock">
+              <input type="checkbox" id="accRewardUnlock">
+              <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+              <span>Cambiar beneficio</span>
+            </label>
+            <p class="field-hint" id="accRewardHint"></p>
           </div>
           <div class="field">
             <span class="lbl-like" id="accModeLbl">Cómo se calcula el riesgo</span>
@@ -1403,15 +1432,16 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   const fmtUsdS = v => (v >= 0 ? '+' : '−') + usd.format(Math.abs(v));
   const pctS = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + ' %';
   const compact = v => { const a = Math.abs(v); return (v < 0 ? '−' : '') + (a >= 1e6 ? '$' + (a / 1e6).toFixed(2) + 'M' : a >= 1e4 ? '$' + (a / 1e3).toFixed(1) + 'k' : '$' + Math.round(a).toLocaleString('en-US')); };
-  const accPeriod = $('#accPeriod'), accCap = $('#accCap'), accRisk = $('#accRisk');
+  const accPeriod = $('#accPeriod'), accCap = $('#accCap'), accRisk = $('#accRisk'), accReward = $('#accReward'), accRewardUnlock = $('#accRewardUnlock');
   let accMode = 'fixed';
   [ALL, ...MONTHS].forEach(m => { const o = document.createElement('option'); o.value = m.key; o.textContent = m.key === 'all' ? 'Los 10 meses (ene – oct 2026)' : m.month; accPeriod.append(o); });
   accPeriod.value = 'all';
   const parseCap = s => { const v = parseFloat(String(s).replace(/,/g, '').replace(/[^0-9.]/g, '')); return isFinite(v) ? v : NaN; };
   // one month applied to a balance; fixed risk uses the initial capital, compound uses the running balance
-  function monthResult(m, bal, B0, r, mode) {
-    if (mode === 'fixed') return bal + B0 * r * netR(m);
-    return bal * Math.pow(1 + 3 * r, m.tp) * Math.pow(1 - r, m.sl);
+  // k = reward multiple of the risk per TP (3 for the indicator's 1:3)
+  function monthResult(m, bal, B0, r, mode, k) {
+    if (mode === 'fixed') return bal + B0 * r * (m.tp * k - m.sl);
+    return bal * Math.pow(1 + k * r, m.tp) * Math.pow(1 - r, m.sl);
   }
   function niceStep(range) { const raw = range / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
   function drawAccLine(points, B0) {
@@ -1464,17 +1494,27 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
     if (!(B0 >= 10 && B0 <= 1e7)) { err.textContent = 'Escribe un capital entre $10 y $10,000,000.'; return; }
     err.textContent = '';
     const riskUsd = B0 * r;
+    const key = accPeriod.value, m = key === 'all' ? ALL : MONTHS.find(x => x.key === key);
+    const unlocked = accRewardUnlock.checked, k = unlocked ? Number(accReward.value) : 3;
+    const kTxt = String(Number(k.toFixed(2)));
+    $('#accRewardField').dataset.locked = String(!unlocked);
+    $('#accRewardOut').textContent = `1:${kTxt}`;
+    accReward.style.setProperty('--fill', ((accReward.value - accReward.min) / (accReward.max - accReward.min) * 100) + '%');
+    const tpPct = Number((r * k * 100).toFixed(3));
+    $('#accRewardHint').innerHTML = unlocked
+      ? `Cada TP gana ${kTxt} × tu riesgo (+${tpPct} % del capital con ${accRisk.value} % de riesgo). Con 1:${kTxt} el punto de equilibrio está en ${(100 / (1 + k)).toFixed(1)} % de acierto.`
+        + (k !== 3 ? ` <span class="reward-warn">Simulación hipotética: usa los mismos ${m.tp} TP y ${m.sl} SL del backtest hecho a 1:3. Con otro objetivo, el número de TP y SL podría ser distinto.</span>` : '')
+      : 'Bloqueado en 1:3, el ratio del indicador con el que se hizo el backtest. Marca la casilla para probar otro beneficio.';
     $('#accRiskHint').textContent = accMode === 'fixed'
-      ? `= ${usd.format(riskUsd)} por operación · cada TP ${fmtUsdS(riskUsd * 3)} · cada SL ${fmtUsdS(-riskUsd)}`
+      ? `= ${usd.format(riskUsd)} por operación · cada TP ${fmtUsdS(riskUsd * k)} · cada SL ${fmtUsdS(-riskUsd)}`
       : `= ${accRisk.value} % del saldo en cada operación (la primera arriesga ${usd.format(riskUsd)})`;
     $('#accModeHint').textContent = accMode === 'fixed'
       ? 'Fijo: arriesgas siempre el mismo monto, calculado sobre tu capital inicial.'
       : 'Compuesto: el riesgo se recalcula sobre tu saldo en cada operación, así que crece cuando ganas y se reduce cuando pierdes.';
-    const key = accPeriod.value, m = key === 'all' ? ALL : MONTHS.find(x => x.key === key);
     let end, detail = '';
     if (key === 'all') {
       let bal = B0; const pts = [{ label: 'Inicio', v: B0 }], res = [];
-      MONTHS.forEach(x => { const before = bal; bal = monthResult(x, bal, B0, r, accMode); res.push({ x, d: bal - before, bal }); pts.push({ label: x.name.slice(0, 3), v: bal }); });
+      MONTHS.forEach(x => { const before = bal; bal = monthResult(x, bal, B0, r, accMode, k); res.push({ x, d: bal - before, bal }); pts.push({ label: x.name.slice(0, 3), v: bal }); });
       end = bal; drawAccLine(pts, B0);
       const bestD = Math.max(...res.map(o => o.d)), worstD = Math.min(...res.map(o => o.d));
       const names = d => res.filter(o => Math.abs(o.d - d) < 0.005).map(o => o.x.name).join(' y ');
@@ -1484,20 +1524,20 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
         + `</tbody></table></div>`
         + `<div class="acc-rows">${accRow('Mejor mes', `${best.x.name} ${fmtUsdS(best.d)}`, 'pos')}${accRow('Peor mes', `${worst.x.name} ${fmtUsdS(worst.d)}`, worst.d >= 0 ? 'pos' : 'neg')}</div>`;
     } else {
-      end = monthResult(m, B0, B0, r, accMode);
+      end = monthResult(m, B0, B0, r, accMode, k);
       if (m.seq) {
         let bal = B0; const pts = [{ label: 'Inicio', v: B0 }];
-        m.seq.forEach((t, i) => { const risk = accMode === 'fixed' ? B0 * r : bal * r; bal += t ? risk * 3 : -risk; pts.push({ label: 'T' + (i + 1), v: bal }); });
+        m.seq.forEach((t, i) => { const risk = accMode === 'fixed' ? B0 * r : bal * r; bal += t ? risk * k : -risk; pts.push({ label: 'T' + (i + 1), v: bal }); });
         drawAccLine(pts, B0);
       } else drawAccBars(B0, end);
       if (accMode === 'fixed') {
-        detail = `<div class="acc-rows">${accRow(`${m.tp} TP × ${fmtUsdS(riskUsd * 3)}`, fmtUsdS(m.tp * riskUsd * 3), 'pos')}${accRow(`${m.sl} SL × ${fmtUsdS(-riskUsd)}`, fmtUsdS(-m.sl * riskUsd), 'neg')}${accRow('Resultado del mes', fmtUsdS(end - B0), end >= B0 ? 'pos' : 'neg')}</div>`;
+        detail = `<div class="acc-rows">${accRow(`${m.tp} TP × ${fmtUsdS(riskUsd * k)}`, fmtUsdS(m.tp * riskUsd * k), 'pos')}${accRow(`${m.sl} SL × ${fmtUsdS(-riskUsd)}`, fmtUsdS(-m.sl * riskUsd), 'neg')}${accRow('Resultado del mes', fmtUsdS(end - B0), end >= B0 ? 'pos' : 'neg')}</div>`;
       } else {
         detail = `<div class="acc-rows">${accRow('Operaciones', `${m.tp} TP · ${m.sl} SL`)}${accRow('Riesgo', `${accRisk.value} % del saldo`)}${accRow('Resultado del mes', fmtUsdS(end - B0), end >= B0 ? 'pos' : 'neg')}</div>`
           + (m.seq ? '' : '<p class="field-hint">Con interés compuesto el saldo final no depende del orden de los trades, así que el resultado es exacto aunque el orden no esté registrado.</p>');
       }
     }
-    $('#accEndLbl').textContent = key === 'all' ? 'Saldo final tras 10 meses' : `Saldo final de ${m.name.toLowerCase()}`;
+    $('#accEndLbl').textContent = (key === 'all' ? 'Saldo final tras 10 meses' : `Saldo final de ${m.name.toLowerCase()}`) + (k !== 3 ? ` · 1:${kTxt} hipotético` : '');
     const endEl = $('#accEnd'); endEl.textContent = fmtUsd(end); endEl.className = 'val num ' + (end >= B0 ? 'pos' : 'neg');
     $('#accGain').textContent = `${fmtUsdS(end - B0)} · ${pctS((end / B0 - 1) * 100)}`;
     $('#accDetail').innerHTML = detail;
@@ -1509,6 +1549,13 @@ footer { border-top: 1px solid var(--line); padding-block: 36px calc(36px + env(
   accCap.addEventListener('blur', () => { const v = parseCap(accCap.value); if (v >= 10 && v <= 1e7) accCap.value = v.toLocaleString('en-US', { maximumFractionDigits: 2 }); });
   $$('#accQuick button').forEach(b => b.addEventListener('click', () => { accCap.value = Number(b.dataset.cap).toLocaleString('en-US'); runSim(); }));
   $$('#accMode button').forEach(b => b.addEventListener('click', () => { accMode = b.dataset.mode; $$('#accMode button').forEach(o => o.setAttribute('aria-pressed', String(o === b))); runSim(); }));
+  accReward.addEventListener('input', runSim);
+  accRewardUnlock.addEventListener('change', () => {
+    accReward.disabled = !accRewardUnlock.checked;
+    if (!accRewardUnlock.checked) accReward.value = 3;
+    else accReward.focus();
+    runSim();
+  });
   runSim();
 
   /* ---------- 1:3 calculator ---------- */
