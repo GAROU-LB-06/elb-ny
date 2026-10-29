@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const { $, $$, svgEl, COL, CMP, MONO, WORD, esc, fmtR, wrOf, sumOf, rStep, usd, usd0, fmtUsd, fmtUsdS, pctS, compact, parseCap, niceStep, accRow,
-    chartLabel, isNarrow, showX, prepMonths, statsOf, nameHTML, cmpCard, accesoUrl, catCardHTML, disponibles, TV_ICO } = ELB;
+    chartLabel, isNarrow, showX, prepMonths, statsOf, nameHTML, cmpCard, accesoUrl, TV_ICO } = ELB;
 
   function zoneHTML(ind, z) {
     const p = ind.id, g = ind.grafico, [ka, kb] = z.ks, s0 = z.ST[ka], R = ind.ratios[ka];
@@ -643,17 +643,12 @@
       <header class="sec-head">
         <p class="kicker">ELB://404</p>
         <h1 class="h2">No encontré ese indicador</h1>
-        <p>Puede que el enlace esté incompleto o que el indicador haya cambiado de nombre. Abajo están todos los indicadores ELB.</p>
+        <p>Puede que el enlace esté incompleto o que el indicador haya cambiado de nombre.</p>
+        <p class="zone-links"><a class="btn btn-red" href="index.html#indicadores">Ver los indicadores</a></p>
       </header>
     </div>
   </section>`;
   }
-
-  /* ---------- the other indicators, as the same cards as the catalog ---------- */
-  const others = [...disponibles(), ...INDICADORES.filter(i => i.proximamente)].filter(i => i !== ind);
-  $('#otrosGrid').insertAdjacentHTML('beforeend', others.map(catCardHTML).join(''));
-  $('#otrosHead').textContent = !ind ? 'Indicadores ELB' : 'Otros indicadores ELB';
-  if (!others.length) $('#otros').hidden = true;
 
   // the page is built by this script: aim at a linked part (#resultados…) once fonts and images have settled
   addEventListener('load', () => {
