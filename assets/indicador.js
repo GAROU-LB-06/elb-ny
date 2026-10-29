@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const { $, $$, svgEl, COL, CMP, MONO, WORD, esc, fmtR, wrOf, sumOf, rStep, usd, usd0, fmtUsd, fmtUsdS, pctS, compact, parseCap, niceStep, accRow,
-    chartLabel, isNarrow, showX, prepMonths, statsOf, nameHTML, cmpCard, accesoUrl, catCardHTML, TV_ICO } = ELB;
+    chartLabel, isNarrow, showX, prepMonths, statsOf, nameHTML, cmpCard, accesoUrl, catCardHTML, disponibles, TV_ICO } = ELB;
 
   function zoneHTML(ind, z) {
     const p = ind.id, g = ind.grafico, [ka, kb] = z.ks, s0 = z.ST[ka], R = ind.ratios[ka];
@@ -588,11 +588,45 @@
     });
   }
 
+  // in development: what it will cover and where to hear first; no results until its backtest is done
+  function soonHTML(ind) {
+    const p = ind.id;
+    return `
+  <div class="ind-zone" id="${p}" data-ind="${p}">
+    <header class="zone-hero">
+      <div class="wrap zone-hero-in">
+        <div class="zone-id">
+          <p class="kicker">ELB://indicador/${p}</p>
+          <h1 class="zone-title">${nameHTML(ind)}</h1>
+          <p class="zone-full">${esc(ind.completo)}</p>${ind.descripcion ? `
+          <p class="zone-desc">${esc(ind.descripcion)}</p>` : ''}
+          <p class="zone-links"><a class="btn btn-red" href="index.html#redes">Avísame en redes</a><a class="btn btn-ghost" href="index.html#indicadores">Ver indicadores</a></p>
+        </div>
+        <div class="ticket zone-chart">
+          <p class="lbl-like">Mercados</p>${(ind.mercados || []).length ? `
+          <p class="chips">${ind.mercados.map(m => `<span class="chip">${esc(m)}</span>`).join('')}</p>` : ''}
+          <p class="zone-must zone-soon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span><b>${esc(ind.estado || 'Próximamente')}</b>Todavía no tiene resultados publicados. Cuando termine su backtest verás aquí sus resultados mes a mes, el gráfico exacto donde se obtuvieron, la comparación de TP y su simulador.</span>
+          </p>
+        </div>
+      </div>${(ind.ficha || []).length ? `
+      <div class="wrap"><dl class="ficha">${ind.ficha.map(([t, d]) => `<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')}</dl></div>` : ''}
+    </header>
+  </div>`;
+  }
+
   /* ---------- this page ---------- */
   const id = new URLSearchParams(location.search).get('id');
   const ind = INDICADORES.find(i => i.id === id);
   const host = $('#indPage');
-  if (ind) {
+  if (ind && ind.proximamente) {
+    document.title = `${ind.nombre} · ELB`;
+    $('#crumbName').textContent = ind.nombre;
+    host.innerHTML = soonHTML(ind);
+    // nothing to ask access for yet
+    const fin = $('.final'); if (fin) fin.hidden = true;
+  } else if (ind) {
     document.title = `${ind.nombre} · ELB`;
     const d = document.querySelector('meta[name="description"]');
     if (d) d.setAttribute('content', `${ind.nombre}: resultados mes a mes en ${chartLabel(ind.grafico)}, comparación de TP y simulador de cuenta.`);
@@ -616,9 +650,10 @@
   }
 
   /* ---------- the other indicators, as the same cards as the catalog ---------- */
-  const others = INDICADORES.filter(i => i !== ind);
-  $('#otrosGrid .soon-card').insertAdjacentHTML('beforebegin', others.map(catCardHTML).join(''));
-  $('#otrosHead').textContent = !ind ? 'Indicadores ELB' : others.length ? 'Otros indicadores ELB' : 'Próximos indicadores ELB';
+  const others = [...disponibles(), ...INDICADORES.filter(i => i.proximamente)].filter(i => i !== ind);
+  $('#otrosGrid').insertAdjacentHTML('beforeend', others.map(catCardHTML).join(''));
+  $('#otrosHead').textContent = !ind ? 'Indicadores ELB' : 'Otros indicadores ELB';
+  if (!others.length) $('#otros').hidden = true;
 
   // the page is built by this script: aim at a linked part (#resultados…) once fonts and images have settled
   addEventListener('load', () => {

@@ -1,12 +1,12 @@
 /* ELB · inicio: portada, catálogo de indicadores, demo y acceso */
 (() => {
   'use strict';
-  const { reduce, $, $$, css, fmtR, resumen, catCardHTML } = ELB;
+  const { reduce, $, $$, css, fmtR, resumen, catCardHTML, disponibles } = ELB;
 
   /* ---------- links from before the site had one page per indicator ---------- */
   // #resultados, #comparativa, #simulador, #calculadora, #elb-ny…, #elb-nzdusd…, #<id>… → indicador.html?id=…
   (function legacyLinks() {
-    const h = decodeURIComponent(location.hash.slice(1)), first = INDICADORES[0];
+    const h = decodeURIComponent(location.hash.slice(1)), first = disponibles()[0];
     if (!h || !first) return;
     const part = s => (['resultados', 'comparativa', 'simulador', 'calculadora'].includes(s) ? s : '');
     let id = '', sec = '';
@@ -20,8 +20,9 @@
   })();
 
   /* ---------- catalog: one card per indicator; the page itself never grows with them ---------- */
-  $('#catGrid .soon-card').insertAdjacentHTML('beforebegin', INDICADORES.map(catCardHTML).join(''));
-  const destacado = INDICADORES[0];
+  // available indicators first, the ones still in development after them
+  $('#catGrid').insertAdjacentHTML('beforeend', [...disponibles(), ...INDICADORES.filter(i => i.proximamente)].map(catCardHTML).join(''));
+  const destacado = disponibles()[0];
   if (destacado) { const { s } = resumen(destacado); $('#heroChip').lastChild.textContent = `${s.months} meses: ${fmtR(s.net)}`; }
 
   /* ---------- hero: sound toggle + 3D tilt ---------- */
@@ -187,10 +188,10 @@
 
   /* ---------- access: pick the indicator, the message and the TradingView view follow it ---------- */
   const accInd = $('#accInd'), tvUser = $('#tvUser'), preview = $('#msgPreview'), status = $('#copyStatus'), accTv = $('#accTv');
-  INDICADORES.forEach(i => { const o = document.createElement('option'); o.value = i.id; o.textContent = i.nombre; accInd.append(o); });
+  disponibles().forEach(i => { const o = document.createElement('option'); o.value = i.id; o.textContent = i.nombre; accInd.append(o); });
   const pedido = new URLSearchParams(location.search).get('ind');
-  if (pedido && INDICADORES.some(i => i.id === pedido)) accInd.value = pedido;
-  const chosen = () => INDICADORES.find(i => i.id === accInd.value) || INDICADORES[0];
+  if (pedido && disponibles().some(i => i.id === pedido)) accInd.value = pedido;
+  const chosen = () => disponibles().find(i => i.id === accInd.value) || disponibles()[0];
   const buildMsg = () => `Hola, quiero acceso gratis a ${chosen().nombre}. Mi usuario de TradingView es: ${tvUser.value.trim() || '________'}`;
   function syncChoice() {
     const i = chosen();

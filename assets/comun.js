@@ -138,6 +138,7 @@ const ELB = (() => {
 
   /* ---------- catalog card: the same card on the inicio and under "otros indicadores" ---------- */
   function catCardHTML(ind) {
+    if (ind.proximamente) return soonCardHTML(ind);
     const { k, s } = resumen(ind), g = ind.grafico;
     return `
         <article class="ticket cat-card" data-ind="${esc(ind.id)}">
@@ -161,6 +162,27 @@ const ELB = (() => {
           </div>
         </article>`;
   }
+
+  // still in development: no numbers yet, its markets and a way to hear when it is out
+  function soonCardHTML(ind) {
+    return `
+        <article class="ticket cat-card is-soon" data-ind="${esc(ind.id)}">
+          <div class="cat-top">
+            <a class="cat-name" href="${indUrl(ind)}" aria-label="${esc(ind.nombre)}: ver su página">${nameHTML(ind)}</a>
+            <span class="badge badge-soon">${esc(ind.estado || 'Próximamente')}</span>
+          </div>
+          <p class="cat-sub">${esc(ind.completo)}</p>${ind.descripcion ? `
+          <p class="cat-desc">${esc(ind.descripcion)}</p>` : ''}${(ind.mercados || []).length ? `
+          <p class="chips">${ind.mercados.map(m => `<span class="chip">${esc(m)}</span>`).join('')}</p>` : ''}
+          <p class="cat-period">Resultados: se publican cuando termine su backtest</p>
+          <div class="cat-actions">
+            <a class="btn btn-ghost" href="${indUrl(ind)}">Ver detalles</a>
+            <a class="btn btn-ghost" href="index.html#redes">Avísame en redes</a>
+          </div>
+        </article>`;
+  }
+  // indicators that already have results (access, featured numbers, links)
+  const disponibles = () => INDICADORES.filter(i => !i.proximamente);
 
   /* ---------- socials (Redes section and access DMs, when the page has them) ---------- */
   const ICONS = {
@@ -190,5 +212,5 @@ const ELB = (() => {
 
 
   return { reduce, $, $$, css, SVGNS, svgEl, COL, CMP, MONO, WORD, esc, fmtR, wrOf, sumOf, rStep, usd, usd0, fmtUsd, fmtUsdS, pctS, compact, parseCap, niceStep, accRow,
-    chartLabel, isNarrow, showX, prepMonths, statsOf, sufijoHTML, nameHTML, cmpCard, indUrl, accesoUrl, resumen, catCardHTML, ICONS, TV_ICO };
+    chartLabel, isNarrow, showX, prepMonths, statsOf, sufijoHTML, nameHTML, cmpCard, indUrl, accesoUrl, resumen, catCardHTML, disponibles, ICONS, TV_ICO };
 })();

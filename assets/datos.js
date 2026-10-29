@@ -25,7 +25,10 @@ const FIN_GRATIS = new Date(2026, 11, 31, 23, 59, 59);
    - grafico: el gráfico exacto donde se obtuvieron los resultados. Se muestra como obligatorio.
    - ratios: los TP y SL de cada mes con cada objetivo de TP (3 = TP a 1:3, 2 = TP a 1:2).
      Con un solo ratio su página no muestra la comparación.
-   - orden: el orden de los trades del mes si quedó grabado (1 = TP, 0 = SL); si no, null. */
+   - orden: el orden de los trades del mes si quedó grabado (1 = TP, 0 = SL); si no, null.
+   - proximamente: true para un indicador que todavía no tiene resultados. Sale en el catálogo como
+     "Próximamente" y su página muestra sus mercados y su estado. Cuando tengas su backtest, quita esa línea
+     y agrégale grafico, periodo, riesgoUsd y ratios como en el primero. */
 const INDICADORES = [
   {
     id: 'elb-sterling-edge',
@@ -93,6 +96,22 @@ const INDICADORES = [
       { video: 'media/reel-historia.mp4', portada: 'media/reel-historia.jpg', titulo: 'Perdí 2 de 5 y gané +$700', texto: 'Los 5 trades de octubre, uno por uno, con la tabla actualizándose.' },
       { video: 'media/reel-tp-o-sl.mp4', portada: 'media/reel-tp-o-sl.jpg', titulo: '¿TP o SL?', texto: 'Sale la señal, cuenta atrás y el resultado.' },
       { video: 'media/reel-lineas.mp4', portada: 'media/reel-lineas.jpg', titulo: 'Deja de dibujar líneas', texto: 'Entrada, SL y TP 1:3 aparecen solos al formarse la señal.' },
+    ],
+  },
+  {
+    id: 'elb-nasdaq',
+    proximamente: true,
+    nombre: 'ELB · Próximo indicador NASDAQ',
+    corto: 'NASDAQ',
+    marca: { logo: 'media/elb-logo.png', ancho: 494, alto: 720, sufijo: 'Próximo indicador - NASDAQ' },
+    completo: 'Indicador para TradingView · NASDAQ 100 y sus futuros',
+    descripcion: 'El próximo indicador ELB es para el NASDAQ: el índice NASDAQ 100 y sus futuros. Cuando termine su backtest, aquí estarán sus resultados mes a mes, el gráfico exacto donde se obtuvieron y su simulador, igual que en los demás indicadores.',
+    estado: 'Próximamente',
+    mercados: ['NAS100', 'NQ · futuros'],
+    ficha: [
+      ['Mercados', 'NASDAQ 100 y futuros del NASDAQ'],
+      ['Estado', 'En desarrollo'],
+      ['Resultados', 'Al terminar su backtest'],
     ],
   },
 ];

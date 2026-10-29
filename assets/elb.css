@@ -723,6 +723,12 @@ main:focus { outline: none; }
 .ficha dt { font: 600 11px/1 var(--f-mono); color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
 .ficha dd { margin: 0; font-weight: 600; }
 .ind-404 .sec-head { margin-bottom: 0; }
+/* indicators still in development */
+.cat-card.is-soon { background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0 10px, transparent 10px 20px), var(--panel); }
+.cat-card.is-soon .logo img { opacity: .85; }
+.zone-must.zone-soon { background: rgba(255, 255, 255, 0.03); border-color: var(--line-2); color: var(--muted); }
+.zone-must.zone-soon svg, .zone-must.zone-soon b { color: var(--fg); }
+.zone-chart .chips .chip, .cat-card .chips .chip { font-size: 13px; padding: 8px 10px; }
 @media (max-width: 640px) {
   .cat-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cat-kpis div:nth-child(3) { border-left: 0; }
