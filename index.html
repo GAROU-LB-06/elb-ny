@@ -438,7 +438,6 @@ kbd { font: 700 13px/1 var(--f-mono); padding: 3px 7px; border: 1px solid var(--
 .soc-ico svg { width: 28px; height: 28px; }
 .soc h3 { font-size: 22px; text-transform: uppercase; }
 .soc .handle { font: 700 15px/1.3 var(--f-mono); color: var(--red-hot); overflow-wrap: anywhere; }
-.soc .handle.pending { color: var(--dim); }
 .soc p { color: var(--muted); font-size: 15px; }
 .soc .go { font: 700 13px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg); display: inline-flex; gap: 8px; align-items: center; }
 
@@ -1163,12 +1162,12 @@ main:focus { outline: none; }
   'use strict';
 
   /* ======== Configuración: tus redes ========
-     Escribe tu usuario y el enlace de cada red. Si una queda vacía, su tarjeta se muestra como pendiente. */
+     Escribe tu usuario y el enlace de cada red. Si una queda vacía, no se muestra en la página. */
   // mostrar: lo que se lee en la tarjeta si no es @usuario
   const REDES = [
     { id: 'instagram', nombre: 'Instagram', usuario: 'the_enough_l', url: 'https://www.instagram.com/the_enough_l/', dm: 'https://ig.me/m/the_enough_l', texto: 'Reels de backtests y las señales de la sesión.' },
     { id: 'tiktok', nombre: 'TikTok', usuario: 'elli.7hg', url: 'https://www.tiktok.com/@elli.7hg', dm: '', texto: 'Los mismos reels, primero que en ningún lado.' },
-    { id: 'youtube', nombre: 'YouTube', usuario: 'EduardoLopez-sq3dj', url: 'https://www.youtube.com/@EduardoLopez-sq3dj', dm: '', texto: 'Shorts y explicaciones más largas de los indicadores.' },
+    { id: 'youtube', nombre: 'YouTube', usuario: '', url: '', dm: '', texto: 'Shorts y explicaciones más largas de los indicadores.' },
     { id: 'facebook', nombre: 'Facebook', usuario: 'sam.sepiol.torres', mostrar: 'Dxy XM', url: 'https://www.facebook.com/sam.sepiol.torres/', dm: 'https://m.me/sam.sepiol.torres', texto: 'Reels, avisos y novedades de los indicadores ELB.' },
     { id: 'tradingview', nombre: 'TradingView', usuario: 'negantwd308', url: 'https://es.tradingview.com/u/negantwd308/', dm: '', texto: 'Mi perfil, donde publico los indicadores ELB.' },
   ];
@@ -2091,16 +2090,14 @@ main:focus { outline: none; }
     tradingview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M16 6h4v4"/></svg>',
   };
   const soc = $('#socGrid');
-  REDES.forEach(r => {
-    const ok = !!(r.url && r.usuario);
-    const el = document.createElement(ok ? 'a' : 'div');
-    el.className = 'ticket soc';
-    if (ok) { el.href = r.url; el.target = '_blank'; el.rel = 'noopener'; }
+  REDES.filter(r => r.url && r.usuario).forEach(r => {
+    const el = document.createElement('a');
+    el.className = 'ticket soc'; el.href = r.url; el.target = '_blank'; el.rel = 'noopener';
     el.innerHTML = `<span class="soc-ico" aria-hidden="true">${ICONS[r.id] || ''}</span>
       <h3>${r.nombre}</h3>
-      <span class="handle ${ok ? '' : 'pending'}">${ok ? r.mostrar || '@' + r.usuario.replace(/^@/, '') : 'Usuario pendiente'}</span>
+      <span class="handle">${r.mostrar || '@' + r.usuario.replace(/^@/, '')}</span>
       <p>${r.texto}</p>
-      <span class="go">${ok ? 'Seguir' : 'Enlace en camino'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>`;
+      <span class="go">Seguir <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>`;
     soc.appendChild(el);
   });
   const dm = $('#dmLinks');
