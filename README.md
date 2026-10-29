@@ -25,6 +25,8 @@ Sitio de los indicadores ELB. Publicado con GitHub Pages desde la rama `main`.
 
 El inicio suma una tarjeta en el catálogo y el indicador tiene su página en `indicador.html?id=<su id>`. No hay que tocar ningún otro archivo.
 
+Las páginas enlazan cada archivo de `assets/` con una versión (`?v=...`) para que los navegadores no muestren una copia vieja. Si editas `datos.js` a mano sin cambiar esa versión, el cambio puede tardar hasta 10 minutos en verse.
+
 ---
 
 Los resultados mostrados provienen de un backtest en el modo replay de TradingView y no garantizan resultados futuros. Nada en este sitio es consejo financiero.
