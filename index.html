@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/elb.css?v=1a735eb7">
+<link rel="stylesheet" href="assets/elb.css?v=5e8d3426">
 </head>
 <body>
 
@@ -95,10 +95,10 @@
         </div>
       </div>
 
-      <div class="hero-media">
+      <div class="hero-media video-off" id="heroMedia">
         <div class="giant" id="giant" aria-hidden="true"><span class="giant-logo"></span></div>
         <div class="phone" id="phone">
-          <video id="heroVideo" src="media/reel-historia.mp4" poster="media/reel-historia.jpg" autoplay muted loop playsinline preload="metadata" aria-label="Reel de ELB: los 5 trades de octubre, +$700"></video>
+          <video id="heroVideo" src="media/reel-historia.mp4" poster="media/reel-historia.jpg" muted loop playsinline preload="none" aria-label="Reel de ELB: los 5 trades de octubre, +$700"></video>
           <button class="sound-btn" id="soundBtn" type="button" aria-pressed="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="soundWave" d="M17 9l4 6M21 9l-4 6"/></svg>
             <span id="soundLabel">Activar sonido</span>
@@ -107,6 +107,9 @@
         <span class="float-chip chip-tp num"><i></i>TP +3R</span>
         <span class="float-chip chip-sl num"><i></i>SL −1R</span>
         <span class="float-chip chip-wr num" id="heroChip"><i></i>10 meses: +50R</span>
+        <button class="video-toggle" id="videoToggle" type="button" aria-expanded="false" aria-controls="phone">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span>Ver video</span>
+        </button>
       </div>
     </div>
 
@@ -364,7 +367,7 @@
 
 <script src="assets/datos.js?v=f2bc746d"></script>
 <script src="assets/comun.js?v=9aaaad9c"></script>
-<script src="assets/inicio.js?v=74710445"></script>
+<script src="assets/inicio.js?v=ad6dd9c7"></script>
 <script src="assets/movimiento.js?v=faffb5d0"></script>
 </body>
 </html>

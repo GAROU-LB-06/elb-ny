@@ -650,6 +650,21 @@ main:focus { outline: none; }
   .soc h3 { font-size: 19px; }
 }
 
+/* ---------- hero video: hidden until asked for; a quiet button shows and hides it ---------- */
+.hero-media.video-off { min-height: clamp(420px, 44vw, 600px); }
+.hero-media.video-off .phone, .hero-media.video-off .float-chip { display: none; }
+.video-toggle { position: relative; z-index: 4; margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; font: 600 11px/1 var(--f-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); background: rgba(11, 8, 9, 0.55); border: 1px solid var(--line); cursor: pointer; transition: color .2s ease, border-color .2s ease; }
+.video-toggle:hover, .video-toggle:focus-visible { color: var(--fg); border-color: var(--line-2); }
+.video-toggle svg { width: 11px; height: 11px; flex: none; }
+.hero-media.video-off .video-toggle { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); margin: 0; white-space: nowrap; }
+.phone.entering { animation: phoneIn .7s var(--ease-out) both; }
+@media (max-width: 900px) {
+  .hero-media.video-off { min-height: 300px; }
+  .hero-media.video-off .giant { height: 330px; }
+}
+@media (pointer: coarse) { .video-toggle { min-height: 36px; } }
+@media (prefers-reduced-motion: reduce) { .phone.entering { animation: none; } .video-toggle { transition: none; } }
+
 /* ---------- responsive ---------- */
 @media (max-width: 1180px) {
   .nav-links { display: none; }
