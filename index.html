@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/elb.css?v=5eab5085">
+<link rel="stylesheet" href="assets/elb.css?v=b26f43b4">
 </head>
 <body>
 
@@ -37,7 +37,6 @@
     <nav class="nav-links" aria-label="Secciones">
       <a href="#indicadores">Indicadores</a>
       <a href="#como-funciona">Cómo funciona</a>
-      <a href="#calculadora">Ratio 1:3</a>
       <a href="#acceso">Acceso</a>
       <a href="#redes">Redes</a>
       <a href="#faq">FAQ</a>
@@ -57,10 +56,9 @@
     <nav class="wrap" aria-label="Secciones (móvil)">
       <a href="#indicadores">Indicadores <span>01</span></a>
       <a href="#como-funciona">Cómo funciona <span>02</span></a>
-      <a href="#calculadora">Ratio 1:3 <span>03</span></a>
-      <a href="#acceso">Acceso gratis <span>04</span></a>
-      <a href="#redes">Redes <span>05</span></a>
-      <a href="#faq">FAQ <span>06</span></a>
+      <a href="#acceso">Acceso gratis <span>03</span></a>
+      <a href="#redes">Redes <span>04</span></a>
+      <a href="#faq">FAQ <span>05</span></a>
     </nav>
   </div>
 </header>
@@ -208,52 +206,6 @@
             <div class="legend"><span><span class="line-key" style="color: var(--entry)"></span>Entrada</span><span><span class="line-key" style="color: var(--sl)"></span>SL −1R</span><span><span class="line-key" style="color: var(--tp)"></span>TP +3R</span></div>
             <span>Animación ilustrativa con precios de ejemplo</span>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= CALCULADORA ================= -->
-  <section class="sec" id="calculadora">
-    <div class="wrap">
-      <header class="sec-head">
-        <p class="kicker">ELB://ratio-1-3</p>
-        <h2>¿Por qué 1:3?</h2>
-        <p>Cada TP paga tres veces lo que arriesga cada SL. Con eso, acertar más de 1 de cada 4 operaciones ya deja el resultado en positivo. El control arranca en 39 %, el winrate real de ELB Sterling Edge NY - NZDUSD en 10 meses de backtest (OANDA, 7 minutos). Muévelo y compruébalo.</p>
-      </header>
-
-      <div class="ticket calc">
-        <div class="calc-in">
-          <div class="field">
-            <div class="field-top"><label for="wr">Winrate</label><output id="wrOut" for="wr" class="num">60 %</output></div>
-            <div class="range-wrap">
-              <input id="wr" type="range" min="10" max="90" step="1" value="39" aria-describedby="beNote">
-              <span class="be-mark" id="beMark" aria-hidden="true"><span>Equilibrio 25 %</span></span>
-            </div>
-          </div>
-          <div class="field">
-            <div class="field-top"><label for="ntr">Operaciones</label><output id="ntrOut" for="ntr" class="num">20</output></div>
-            <input id="ntr" type="range" min="5" max="100" step="1" value="20">
-          </div>
-          <div class="field">
-            <div class="field-top"><label for="risk">Riesgo por operación</label><output id="riskOut" for="risk" class="num">$100</output></div>
-            <input id="risk" type="range" min="10" max="1000" step="10" value="100">
-          </div>
-          <p class="calc-note" id="beNote">Con ratio 1:3 el punto de equilibrio está en 25 % de acierto: 1 TP (+3R) compensa 3 SL (−3R).</p>
-        </div>
-        <div class="calc-out" aria-live="polite">
-          <div class="big-out">
-            <span class="lbl">Resultado esperado</span>
-            <span class="val num pos" id="totR">+28.0R</span>
-            <span class="sub num" id="totUsd">≈ +$2,800 con $100 por operación</span>
-          </div>
-          <div class="big-out">
-            <span class="lbl">Por operación</span>
-            <span class="val num pos" id="perR" style="font-size: clamp(28px, 4vw, 40px)">+1.40R</span>
-          </div>
-          <div class="wl-bar" aria-hidden="true"><span class="w" id="wlW" style="width: 80%"></span><span class="l" id="wlL" style="width: 20%"></span></div>
-          <div class="wl-legend num"><span id="wlWin" class="pos">12 TP · +36R</span><span id="wlLoss" class="neg">8 SL · −8R</span></div>
-          <p class="calc-note">Es la matemática del ratio con el winrate que elijas. No es una promesa de resultados: el winrate real cambia de un mes a otro.</p>
         </div>
       </div>
     </div>
@@ -421,7 +373,7 @@
 
 <script src="assets/datos.js?v=36fcd735"></script>
 <script src="assets/comun.js?v=a9e4903b"></script>
-<script src="assets/inicio.js?v=226e75af"></script>
+<script src="assets/inicio.js?v=0136fd3e"></script>
 <script src="assets/movimiento.js?v=faffb5d0"></script>
 </body>
 </html>

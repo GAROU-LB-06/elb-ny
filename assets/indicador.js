@@ -6,6 +6,7 @@
 
   function zoneHTML(ind, z) {
     const p = ind.id, g = ind.grafico, [ka, kb] = z.ks, s0 = z.ST[ka], R = ind.ratios[ka];
+    const beTxt = String(+(100 / (ka + 1)).toFixed(1)); // breakeven winrate for this TP target: 25 % at 1:3
     const ratioSeg = lbl => (z.two ? `<div class="seg ratio-seg" role="group" aria-labelledby="${lbl}">${z.ks.map((k, i) => `<button type="button" class="${i ? 'b' : 'a'}" data-ratio="${k}" aria-pressed="${k === ka}">1:${k}</button>`).join('')}</div>` : '');
     const reels = (ind.reels || []).length ? `
         <div class="reels">${ind.reels.map(r => `
@@ -49,6 +50,7 @@
         <a href="#resultados">Resultados</a>${z.two ? `
         <a href="#comparativa">1:${ka} vs 1:${kb}</a>` : ''}
         <a href="#simulador">Simulador</a>
+        <a href="#calculadora">Ratio 1:${ka}</a>
         <span class="zn-sym num">${esc(z.sym)}</span>
       </div>
     </nav>
@@ -186,6 +188,51 @@
             <svg class="acc-chart" data-r="accChart" viewBox="0 0 560 210" role="img" aria-label="Evolución del saldo"></svg>
             <div class="acc-detail" data-r="accDetail"></div>
             <p class="calc-note">Simulación con los resultados del backtest en replay en ${esc(z.sym)}. No incluye comisiones, spread ni deslizamiento, y no garantiza resultados futuros.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="calculadora">
+      <div class="wrap">
+        <header class="sec-head">
+          <p class="kicker">ELB://${p}/ratio-1-${ka}</p>
+          <h2 class="h2">¿Por qué 1:${ka}?</h2>
+          <p>Cada TP paga ${WORD[ka] || ka} veces lo que arriesga cada SL. Con eso, acertar más de 1 de cada ${ka + 1} operaciones ya deja el resultado en positivo. Los controles arrancan en el ${Math.round(s0.wr)}&nbsp;% de acierto y las ${s0.n} operaciones reales de ${esc(ind.nombre)}. Muévelos y compruébalo.</p>
+        </header>
+
+        <div class="ticket calc">
+          <div class="calc-in">
+            <div class="field">
+              <div class="field-top"><label for="${p}-wr">Winrate</label><output for="${p}-wr" class="num" data-r="wrOut"></output></div>
+              <div class="range-wrap">
+                <input id="${p}-wr" data-r="wr" type="range" min="10" max="90" step="1" value="${Math.min(90, Math.max(10, Math.round(s0.wr)))}" aria-describedby="${p}-beNote">
+                <span class="be-mark" data-r="beMark" aria-hidden="true"><span>Equilibrio ${beTxt} %</span></span>
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-top"><label for="${p}-ntr">Operaciones</label><output for="${p}-ntr" class="num" data-r="ntrOut"></output></div>
+              <input id="${p}-ntr" data-r="ntr" type="range" min="5" max="100" step="1" value="${Math.min(100, Math.max(5, s0.n))}">
+            </div>
+            <div class="field">
+              <div class="field-top"><label for="${p}-risk">Riesgo por operación</label><output for="${p}-risk" class="num" data-r="riskOut"></output></div>
+              <input id="${p}-risk" data-r="risk" type="range" min="10" max="1000" step="10" value="${z.risk}">
+            </div>
+            <p class="calc-note" id="${p}-beNote">Con ratio 1:${ka} el punto de equilibrio está en ${beTxt}&nbsp;% de acierto: 1 TP (+${ka}R) compensa ${ka} SL (−${ka}R).</p>
+          </div>
+          <div class="calc-out" aria-live="polite">
+            <div class="big-out">
+              <span class="lbl">Resultado esperado</span>
+              <span class="val num pos" data-r="totR"></span>
+              <span class="sub num" data-r="totUsd"></span>
+            </div>
+            <div class="big-out">
+              <span class="lbl">Por operación</span>
+              <span class="val num pos" data-r="perR" style="font-size: clamp(28px, 4vw, 40px)"></span>
+            </div>
+            <div class="wl-bar" aria-hidden="true"><span class="w" data-r="wlW"></span><span class="l" data-r="wlL"></span></div>
+            <div class="wl-legend num"><span data-r="wlWin" class="pos"></span><span data-r="wlLoss" class="neg"></span></div>
+            <p class="calc-note">Es la matemática del ratio con el winrate que elijas. No es una promesa de resultados: el winrate real cambia de un mes a otro.</p>
           </div>
         </div>
       </div>
@@ -506,6 +553,32 @@
     $$('button', q('accMode')).forEach(b => b.addEventListener('click', () => { accMode = b.dataset.mode; $$('button', q('accMode')).forEach(o => o.setAttribute('aria-pressed', String(o === b))); runSim(); }));
     listeners.push(runSim);
     runSim();
+
+    // why 1:k: the result for any winrate with this indicator's TP target; it starts at its real numbers
+    (function ratioCalc() {
+      const k = ks[0], wr = q('wr'), ntr = q('ntr'), rk = q('risk');
+      const money = v => (v < 0 ? '−' : '+') + '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+      const fill = el => el.style.setProperty('--fill', ((el.value - el.min) / (el.max - el.min) * 100) + '%');
+      function calc() {
+        const n = Number(ntr.value), r = Number(rk.value), wins = Math.round(n * wr.value / 100), losses = n - wins;
+        // whole TPs and SLs, so the indicator's real winrate and trades give exactly its real R
+        const tot = wins * k - losses, per = tot / n;
+        q('wrOut').textContent = wr.value + ' %'; q('ntrOut').textContent = n; q('riskOut').textContent = '$' + r.toLocaleString('en-US');
+        const totEl = q('totR'), perEl = q('perR');
+        totEl.textContent = (tot < 0 ? '−' : '+') + Math.abs(tot).toFixed(1) + 'R';
+        perEl.textContent = (per < 0 ? '−' : '+') + Math.abs(per).toFixed(2) + 'R';
+        [totEl, perEl].forEach(e => { e.classList.toggle('pos', tot >= 0); e.classList.toggle('neg', tot < 0); });
+        q('totUsd').textContent = `≈ ${money(tot * r)} con $${r.toLocaleString('en-US')} por operación`;
+        const wPart = wins * k, lPart = losses, sum = wPart + lPart || 1;
+        q('wlW').style.width = (wPart / sum * 100) + '%'; q('wlL').style.width = (lPart / sum * 100) + '%';
+        q('wlWin').textContent = `${wins} TP · +${wins * k}R`; q('wlLoss').textContent = `${losses} SL · −${losses}R`;
+        [wr, ntr, rk].forEach(fill);
+      }
+      [wr, ntr, rk].forEach(el => el.addEventListener('input', calc));
+      const be = 100 / (k + 1); // breakeven mark on the 10–90 slider; the thumb is 22px wide
+      q('beMark').style.left = `calc(${(be - 10) / 80 * 100}% + ${11 - (be - 10) / 80 * 22}px)`;
+      calc();
+    })();
 
     // phones get their own chart layout: redraw when a resize or a rotation crosses that line
     let wasNarrow = isNarrow(q('curve')), rT = 0;

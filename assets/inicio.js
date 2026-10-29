@@ -1,14 +1,14 @@
-/* ELB · inicio: portada, catálogo de indicadores, demo, calculadora y acceso */
+/* ELB · inicio: portada, catálogo de indicadores, demo y acceso */
 (() => {
   'use strict';
   const { reduce, $, $$, css, fmtR, resumen, catCardHTML } = ELB;
 
   /* ---------- links from before the site had one page per indicator ---------- */
-  // #resultados, #comparativa, #simulador, #elb-ny…, #elb-nzdusd…, #<id>… → indicador.html?id=…
+  // #resultados, #comparativa, #simulador, #calculadora, #elb-ny…, #elb-nzdusd…, #<id>… → indicador.html?id=…
   (function legacyLinks() {
     const h = decodeURIComponent(location.hash.slice(1)), first = INDICADORES[0];
     if (!h || !first) return;
-    const part = s => (['resultados', 'comparativa', 'simulador'].includes(s) ? s : '');
+    const part = s => (['resultados', 'comparativa', 'simulador', 'calculadora'].includes(s) ? s : '');
     let id = '', sec = '';
     if (part(h)) { id = first.id; sec = h; }
     else {
@@ -184,28 +184,6 @@
   document.fonts && document.fonts.ready.then(drawSim);
   drawSim();
   new IntersectionObserver((es, ob) => { if (es[0].isIntersecting) { ob.disconnect(); playSim(); } }, { threshold: 0.5 }).observe(simCanvas);
-
-  /* ---------- 1:3 calculator ---------- */
-  const wr = $('#wr'), ntr = $('#ntr'), risk = $('#risk');
-  const money = v => (v < 0 ? '−' : '+') + '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
-  function fill(el) { el.style.setProperty('--fill', ((el.value - el.min) / (el.max - el.min) * 100) + '%'); }
-  function calc() {
-    const p = wr.value / 100, n = Number(ntr.value), rk = Number(risk.value);
-    const per = p * 3 - (1 - p), tot = per * n, wins = Math.round(n * p), losses = n - wins;
-    $('#wrOut').textContent = wr.value + ' %'; $('#ntrOut').textContent = n; $('#riskOut').textContent = '$' + rk.toLocaleString('en-US');
-    const totEl = $('#totR'), perEl = $('#perR');
-    totEl.textContent = (tot < 0 ? '−' : '+') + Math.abs(tot).toFixed(1) + 'R';
-    perEl.textContent = (per < 0 ? '−' : '+') + Math.abs(per).toFixed(2) + 'R';
-    [totEl, perEl].forEach(e => { e.classList.toggle('pos', tot >= 0); e.classList.toggle('neg', tot < 0); });
-    $('#totUsd').textContent = `≈ ${money(tot * rk)} con $${rk.toLocaleString('en-US')} por operación`;
-    const wPart = wins * 3, lPart = losses, sum = wPart + lPart || 1;
-    $('#wlW').style.width = (wPart / sum * 100) + '%'; $('#wlL').style.width = (lPart / sum * 100) + '%';
-    $('#wlWin').textContent = `${wins} TP · +${wins * 3}R`; $('#wlLoss').textContent = `${losses} SL · −${losses}R`;
-    [wr, ntr, risk].forEach(fill);
-  }
-  [wr, ntr, risk].forEach(el => el.addEventListener('input', calc));
-  $('#beMark').style.left = `calc(${(25 - 10) / 80 * 100}% + ${11 - (25 - 10) / 80 * 22}px)`;
-  calc();
 
   /* ---------- access: pick the indicator, the message and the TradingView view follow it ---------- */
   const accInd = $('#accInd'), tvUser = $('#tvUser'), preview = $('#msgPreview'), status = $('#copyStatus'), accTv = $('#accTv');
