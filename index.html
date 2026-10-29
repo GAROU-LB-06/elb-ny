@@ -430,7 +430,8 @@ kbd { font: 700 13px/1 var(--f-mono); padding: 3px 7px; border: 1px solid var(--
 .copy-status { font: 600 13px/1.4 var(--f-mono); color: var(--tp); min-height: 1.4em; }
 
 /* ---------- socials ---------- */
-.soc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.soc-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+.soc-grid > .soc { flex: 1 1 200px; min-width: 0; }
 .soc { padding: 22px; display: grid; gap: 14px; align-content: start; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
 .soc:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -24px rgba(229, 22, 46, 0.8); }
 .soc-ico { width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid var(--line-2); color: var(--fg); }
@@ -652,13 +653,33 @@ main:focus { outline: none; }
 @media (max-width: 900px) { .zone-hero-in { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { .zone-specs div { padding: 10px; } .zone-specs dd { font-size: 15px; } .zone-must { font-size: 14px; } }
 
+/* ---------- phones: full-width actions, compact tables, the apartado bar keeps only its sections ---------- */
+.mshort { display: none; }
+@media (pointer: coarse), (max-width: 640px) {
+  .ratio-link, .foot-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+}
+@media (max-width: 640px) {
+  .hero-cta .btn, .ind-actions .btn, .msg-actions .btn, .zone-links .btn, .step-link .btn { width: 100%; }
+  .quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .zone-nav .zn-name, .zn-sym { display: none; }
+  .zone-nav-in { justify-content: space-between; gap: 4px 12px; }
+  .acc-table { font-size: 13px; }
+  .acc-table th, .acc-table td { padding: 7px 5px; }
+  .mfull { display: none; } .mshort { display: inline; }
+  .trades .m { font-size: 11px; letter-spacing: 0; white-space: nowrap; }
+  .trades li { padding: 10px 4px; }
+  /* socials: icon on the left, text on the right, so five networks stay short */
+  .soc { grid-template-columns: 48px minmax(0, 1fr); column-gap: 14px; row-gap: 6px; padding: 16px; }
+  .soc-ico { grid-row: 1 / span 4; width: 48px; height: 48px; }
+  .soc h3 { font-size: 19px; }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 1180px) {
   .nav-links { display: none; }
   .menu-btn { display: block; }
 }
 @media (max-width: 1020px) {
-  .soc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 900px) {
   .hero-grid, .ind-grid, .how-grid, .res-grid, .acc-grid, .final-in, .foot { grid-template-columns: minmax(0, 1fr); }
@@ -684,7 +705,6 @@ main:focus { outline: none; }
   .mchip[data-period="all"] { flex-basis: 136px; }
   .tvdlg-body { grid-template-columns: minmax(0, 1fr); }
   .tvdlg-side { display: none; }
-  .soc-grid { grid-template-columns: minmax(0, 1fr); }
   .chip-sl { right: 0; }
   .chip-tp { left: 0; }
 }
@@ -999,7 +1019,7 @@ main:focus { outline: none; }
             <li><div><h3>Escríbeme</h3><p>Comenta <kbd>ELB</kbd> en cualquiera de mis reels o mándame un DM.</p></div></li>
             <li><div><h3>Pásame tu usuario</h3><p>Envíame tu nombre de usuario de TradingView. Abajo te armo el mensaje listo para copiar.</p></div></li>
             <li><div><h3>Te doy acceso</h3><p>Activo el indicador en tu cuenta y te aviso por el mismo chat.</p></div></li>
-            <li><div><h3>Agrégalo al gráfico</h3><p>En TradingView abre <kbd>Indicadores</kbd> → <kbd>Solo por invitación</kbd> y elige ELB Sterling Edge NY - NZDUSD. Márcalo con ★ para tenerlo en favoritos.</p><p class="step-link"><a class="btn btn-tv btn-sm" href="https://es.tradingview.com/script/VqOqF6mX/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M16 6h4v4"/></svg>Abrir el script en TradingView</a></p></div></li>
+            <li><div><h3>Agrégalo al gráfico</h3><p>En TradingView abre <kbd>Indicadores</kbd> → <kbd>Solo por invitación</kbd> y elige ELB Sterling Edge NY - NZDUSD. Márcalo con ★ para tenerlo en favoritos.</p><p class="step-link"><a class="btn btn-tv btn-sm" href="https://es.tradingview.com/script/VqOqF6mX/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M16 6h4v4"/></svg>Abrir en TradingView</a></p></div></li>
           </ol>
 
           <div class="ticket msg">
@@ -1144,10 +1164,12 @@ main:focus { outline: none; }
 
   /* ======== Configuración: tus redes ========
      Escribe tu usuario y el enlace de cada red. Si una queda vacía, su tarjeta se muestra como pendiente. */
+  // mostrar: lo que se lee en la tarjeta si no es @usuario
   const REDES = [
-    { id: 'instagram', nombre: 'Instagram', usuario: '', url: '', dm: '', texto: 'Reels de backtests y las señales de la sesión.' },
-    { id: 'tiktok', nombre: 'TikTok', usuario: '', url: '', dm: '', texto: 'Los mismos reels, primero que en ningún lado.' },
-    { id: 'youtube', nombre: 'YouTube', usuario: '', url: '', dm: '', texto: 'Shorts y explicaciones más largas del indicador.' },
+    { id: 'instagram', nombre: 'Instagram', usuario: 'the_enough_l', url: 'https://www.instagram.com/the_enough_l/', dm: 'https://ig.me/m/the_enough_l', texto: 'Reels de backtests y las señales de la sesión.' },
+    { id: 'tiktok', nombre: 'TikTok', usuario: 'elli.7hg', url: 'https://www.tiktok.com/@elli.7hg', dm: '', texto: 'Los mismos reels, primero que en ningún lado.' },
+    { id: 'youtube', nombre: 'YouTube', usuario: 'EduardoLopez-sq3dj', url: 'https://www.youtube.com/@EduardoLopez-sq3dj', dm: '', texto: 'Shorts y explicaciones más largas de los indicadores.' },
+    { id: 'facebook', nombre: 'Facebook', usuario: 'sam.sepiol.torres', mostrar: 'Dxy XM', url: 'https://www.facebook.com/sam.sepiol.torres/', dm: 'https://m.me/sam.sepiol.torres', texto: 'Reels, avisos y novedades de los indicadores ELB.' },
     { id: 'tradingview', nombre: 'TradingView', usuario: 'negantwd308', url: 'https://es.tradingview.com/u/negantwd308/', dm: '', texto: 'Mi perfil, donde publico los indicadores ELB.' },
   ];
   const FIN_GRATIS = new Date(2026, 11, 31, 23, 59, 59);
@@ -1473,6 +1495,10 @@ main:focus { outline: none; }
   const niceStep = range => { const raw = range / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; };
   const accRow = (label, value, cls) => `<div class="acc-row"><span>${label}</span><b class="num ${cls || ''}">${value}</b></div>`;
   const chartLabel = g => `${g.par} · ${g.minutos} · ${g.broker}`;
+  // phones: charts switch to a 340-wide drawing so their text stays readable
+  const isNarrow = svg => svg.getBoundingClientRect().width < 480;
+  // x labels every `every` points, never crowding the last one
+  const showX = (i, last, every) => i === last || (i % every === 0 && last - i >= every);
 
   // config months → chart shape; `short` is the 3-letter label (Ene, Feb…)
   const prepMonths = list => list.map((m, i) => ({ key: 'm' + i, name: m.mes.split(' ')[0], short: m.mes.slice(0, 3), month: m.mes, tp: m.tp, sl: m.sl, seq: m.orden || null, note: m.nota || '' }));
@@ -1521,7 +1547,7 @@ main:focus { outline: none; }
           <h2 class="zone-title">${nameHTML(ind)}</h2>
           <p class="zone-full">${esc(ind.completo)}</p>
           <p class="zone-stats num"><span><b>${fmtR(s0.net)}</b> con TP 1:${ka}</span><span><b>${s0.n}</b> trades</span><span><b>${s0.wr.toFixed(1)} %</b> de acierto</span><span><b>${s0.pos} de ${s0.months}</b> meses en positivo</span></p>${ind.tradingview ? `
-          <p class="zone-links"><a class="btn btn-tv" href="${esc(ind.tradingview)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M16 6h4v4"/></svg>Ver el script en TradingView</a></p>` : ''}
+          <p class="zone-links"><a class="btn btn-tv" href="${esc(ind.tradingview)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M16 6h4v4"/></svg>Ver en TradingView</a></p>` : ''}
         </div>
         <div class="ticket zone-chart">
           <p class="lbl-like">Gráfico de estos resultados</p>
@@ -1720,18 +1746,20 @@ main:focus { outline: none; }
     // cumulative-R line chart; points = [{ label, v }] starting at 0
     function drawLine(points) {
       const svg = q('curve'); svg.replaceChildren();
+      const nar = isNarrow(svg), VW = nar ? 340 : 640, VH = nar ? 250 : 260;
+      svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`);
       const vals = points.map(pt => pt.v), lo = Math.min(0, ...vals), hi = Math.max(...vals);
       const step = rStep(Math.max(1, hi - lo));
       const vMin = Math.floor(lo / step) * step, vMax = Math.ceil(hi / step) * step + (hi % step === 0 ? step : 0);
-      const X0 = 64, X1 = 612, Y0 = 210, Y1 = 30, last = points.length - 1;
+      const X0 = nar ? 46 : 64, X1 = VW - (nar ? 20 : 28), Y0 = VH - 50, Y1 = 30, last = points.length - 1;
       const x = i => X0 + (X1 - X0) * i / last, y = v => Y0 - (Y0 - Y1) * (v - vMin) / (vMax - vMin);
-      const many = points.length > 9;
+      const many = points.length > (nar ? 6 : 9);
       const g = svgEl('g', { 'font-family': MONO, 'font-size': 12, fill: COL.txt });
       for (let v = vMin; v <= vMax; v += step) {
-        g.append(svgEl('line', { x1: X0 - 6, x2: 624, y1: y(v), y2: y(v), stroke: v === 0 ? COL.zero : COL.grid, 'stroke-dasharray': v === 0 ? '4 4' : '' }));
-        g.append(svgEl('text', { x: 52, y: y(v) + 4, 'text-anchor': 'end' }, v + 'R'));
+        g.append(svgEl('line', { x1: X0 - 6, x2: VW - 16, y1: y(v), y2: y(v), stroke: v === 0 ? COL.zero : COL.grid, 'stroke-dasharray': v === 0 ? '4 4' : '' }));
+        g.append(svgEl('text', { x: X0 - 12, y: y(v) + 4, 'text-anchor': 'end' }, v + 'R'));
       }
-      points.forEach((pt, i) => { if (!many || i % 2 === 0 || i === last) g.append(svgEl('text', { x: x(i), y: 246, 'text-anchor': i === last ? 'end' : 'middle', 'font-size': many ? 11 : 12 }, pt.label)); });
+      points.forEach((pt, i) => { if (!many || showX(i, last, nar ? 3 : 2)) g.append(svgEl('text', { x: x(i), y: VH - 14, 'text-anchor': i === last ? 'end' : i === 0 && nar ? 'start' : 'middle', 'font-size': many && !nar ? 11 : 12 }, pt.label)); });
       svg.append(g);
       const defs = svgEl('defs', {}), lg = svgEl('linearGradient', { id: p + '-area', x1: 0, y1: 0, x2: 0, y2: 1 });
       lg.append(svgEl('stop', { offset: 0, 'stop-color': COL.tp, 'stop-opacity': 0.35 }), svgEl('stop', { offset: 1, 'stop-color': COL.tp, 'stop-opacity': 0 }));
@@ -1744,12 +1772,13 @@ main:focus { outline: none; }
       const dots = svgEl('g', { 'stroke-width': 3 });
       points.forEach((pt, i) => {
         const up = i && pt.v >= points[i - 1].v, col = i === 0 ? COL.start : up ? COL.tp : COL.sl;
-        dots.append(svgEl('circle', { cx: x(i), cy: y(pt.v), r: i === last ? 8 : many ? 5 : 6, stroke: col, fill: i === last ? col : COL.void }));
+        dots.append(svgEl('circle', { cx: x(i), cy: y(pt.v), r: i === last ? (nar ? 7 : 8) : many ? (nar ? 4 : 5) : 6, stroke: col, fill: i === last ? col : COL.void }));
       });
       svg.append(dots);
-      const labels = svgEl('g', { 'font-family': MONO, 'font-size': many ? 11 : 13, 'font-weight': 700, 'text-anchor': 'middle' });
+      // on a phone with many points only the final value is labelled; the axis carries the rest
+      const labels = svgEl('g', { 'font-family': MONO, 'font-size': many && !nar ? 11 : 13, 'font-weight': 700, 'text-anchor': 'middle' });
       points.forEach((pt, i) => {
-        if (!i) return; const up = pt.v >= points[i - 1].v;
+        if (!i || (nar && many && i !== last)) return; const up = pt.v >= points[i - 1].v;
         labels.append(svgEl('text', { x: x(i), y: up ? y(pt.v) - 14 : y(pt.v) + 22, fill: up ? COL.tp : COL.sl, 'text-anchor': i === last ? 'end' : 'middle' }, pt.v + 'R'));
       });
       svg.append(labels);
@@ -1760,16 +1789,19 @@ main:focus { outline: none; }
     // months without a recorded trade order: R won by TPs, R lost by SLs, net
     function drawComposition(m) {
       const svg = q('curve'); svg.replaceChildren();
+      const nar = isNarrow(svg), VW = nar ? 340 : 640;
+      svg.setAttribute('viewBox', `0 0 ${VW} 260`);
       const gain = m.tp * RATIO, loss = m.sl, net = gain - loss, max = Math.max(gain, loss, Math.abs(net), 1);
-      const X0 = 196, W = 370;
+      // wide: label column on the left; phone: label and detail above a full-width bar
+      const X0 = nar ? 4 : 196, W = nar ? VW - 76 : 370, H = nar ? 30 : 34;
       [['Ganado en TP', `${m.tp} × ${RATIO}R`, gain, COL.tp], ['Perdido en SL', `${m.sl} × 1R`, -loss, COL.sl], ['Neto del mes', `${wrOf(m).toFixed(1)} % de acierto`, net, net >= 0 ? COL.tp : COL.sl]]
         .forEach(([label, sub, v, col], i) => {
-          const top = 34 + i * 74, w = Math.max(3, W * Math.abs(v) / max);
-          svg.append(svgEl('text', { x: 4, y: top + 15, fill: COL.fg, 'font-family': 'Barlow, sans-serif', 'font-size': 19, 'font-weight': 700 }, label));
-          svg.append(svgEl('text', { x: 4, y: top + 36, fill: COL.txt, 'font-family': MONO, 'font-size': 13 }, sub));
-          svg.append(svgEl('rect', { x: X0, y: top, width: W, height: 34, fill: COL.track }));
-          svg.append(svgEl('rect', { x: X0, y: top, width: w, height: 34, fill: col, 'fill-opacity': i === 2 ? 1 : 0.8 }));
-          svg.append(svgEl('text', { x: X0 + w + 10, y: top + 23, fill: col, 'font-family': MONO, 'font-size': 17, 'font-weight': 700 }, (v >= 0 ? '+' : '−') + Math.abs(v) + 'R'));
+          const top = nar ? 14 + i * 80 : 34 + i * 74, bar = nar ? top + 24 : top, w = Math.max(3, W * Math.abs(v) / max);
+          svg.append(svgEl('text', { x: 4, y: nar ? top + 14 : top + 15, fill: COL.fg, 'font-family': 'Barlow, sans-serif', 'font-size': nar ? 17 : 19, 'font-weight': 700 }, label));
+          svg.append(svgEl('text', nar ? { x: VW - 4, y: top + 14, 'text-anchor': 'end', fill: COL.txt, 'font-family': MONO, 'font-size': 12 } : { x: 4, y: top + 36, fill: COL.txt, 'font-family': MONO, 'font-size': 13 }, sub));
+          svg.append(svgEl('rect', { x: X0, y: bar, width: W, height: H, fill: COL.track }));
+          svg.append(svgEl('rect', { x: X0, y: bar, width: w, height: H, fill: col, 'fill-opacity': i === 2 ? 1 : 0.8 }));
+          svg.append(svgEl('text', { x: X0 + w + (nar ? 8 : 10), y: bar + (nar ? 21 : 23), fill: col, 'font-family': MONO, 'font-size': nar ? 15 : 17, 'font-weight': 700 }, (v >= 0 ? '+' : '−') + Math.abs(v) + 'R'));
         });
       svg.setAttribute('aria-label', `${m.month}: ${gain}R ganados en TP, ${loss}R perdidos en SL, neto ${fmtR(net)}`);
       return net;
@@ -1811,7 +1843,7 @@ main:focus { outline: none; }
         for (let i = 0; i < m.sl; i++) list.append(chip('loss', 'SL', '−1R'));
       }
       list.setAttribute('aria-label', cap.textContent);
-      q('curveTotal').textContent = fmtR(total);
+      const tot = q('curveTotal'); tot.textContent = fmtR(total); tot.style.color = total < 0 ? 'var(--sl)' : total === 0 ? 'var(--muted)' : '';
       q('perNote').textContent = m.note;
       const grid = zone.querySelector('.res-grid'); grid.classList.remove('swap'); void grid.offsetWidth; grid.classList.add('swap');
     }
@@ -1841,29 +1873,34 @@ main:focus { outline: none; }
       const tb = q('cmpTable').tBodies[0];
       A.forEach((a, i) => {
         const b = B[i], x = ra(a), y = rb(b), tr = document.createElement('tr');
-        tr.innerHTML = `<td>${a.name}</td><td class="pos g3">${a.tp}</td><td class="neg">${a.sl}</td><td class="${cls(x)}">${fmtR(x)}</td><td class="pos g2">${b.tp}</td><td class="neg">${b.sl}</td><td class="${cls(y)}">${fmtR(y)}</td>`;
+        tr.innerHTML = `<td><span class="mfull">${a.name}</span><span class="mshort">${a.short}</span></td><td class="pos g3">${a.tp}</td><td class="neg">${a.sl}</td><td class="${cls(x)}">${fmtR(x)}</td><td class="pos g2">${b.tp}</td><td class="neg">${b.sl}</td><td class="${cls(y)}">${fmtR(y)}</td>`;
         tb.append(tr);
       });
       const sa = ST[ka], sb = ST[kb], tot = document.createElement('tr'); tot.className = 'tot';
       tot.innerHTML = `<td>Total</td><td class="pos g3">${sa.tp}</td><td class="neg">${sa.sl}</td><td class="${cls(sa.net)}">${fmtR(sa.net)}</td><td class="pos g2">${sb.tp}</td><td class="neg">${sb.sl}</td><td class="${cls(sb.net)}">${fmtR(sb.net)}</td>`;
       tb.append(tot);
-
-      const svg = q('cmpChart'); let a1 = 0, b1 = 0;
+      drawCmp();
+    })();
+    function drawCmp() {
+      const [ka, kb] = ks, A = DATA[ka], B = DATA[kb], ra = m => m.tp * ka - m.sl, rb = m => m.tp * kb - m.sl;
+      const svg = q('cmpChart'); svg.replaceChildren(); let a1 = 0, b1 = 0;
+      const nar = isNarrow(svg), VW = nar ? 340 : 640;
+      svg.setAttribute('viewBox', `0 0 ${VW} 270`);
       const s1 = [0, ...A.map(m => (a1 += ra(m)))], s2 = [0, ...B.map(m => (b1 += rb(m)))];
       const labels = ['Inicio', ...A.map(m => m.short)];
       const lo = Math.min(0, ...s1, ...s2), hi = Math.max(...s1, ...s2), step = rStep(Math.max(1, hi - lo));
       const vMin = Math.floor(lo / step) * step, vMax = Math.ceil(hi / step) * step + (hi % step === 0 ? step : 0);
-      const X0 = 64, X1 = 590, Y0 = 220, Y1 = 26, n = s1.length - 1;
+      const X0 = nar ? 44 : 64, X1 = VW - (nar ? 52 : 50), Y0 = 220, Y1 = 26, n = s1.length - 1;
       const x = i => X0 + (X1 - X0) * i / n, y = v => Y0 - (Y0 - Y1) * (v - vMin) / (vMax - vMin);
       const g = svgEl('g', { 'font-family': MONO, 'font-size': 12, fill: COL.txt });
       for (let v = vMin; v <= vMax; v += step) {
-        g.append(svgEl('line', { x1: X0 - 6, x2: 630, y1: y(v), y2: y(v), stroke: v === 0 ? COL.zero : COL.grid, 'stroke-dasharray': v === 0 ? '4 4' : '' }));
-        g.append(svgEl('text', { x: 52, y: y(v) + 4, 'text-anchor': 'end' }, v + 'R'));
+        g.append(svgEl('line', { x1: X0 - 6, x2: VW - 10, y1: y(v), y2: y(v), stroke: v === 0 ? COL.zero : COL.grid, 'stroke-dasharray': v === 0 ? '4 4' : '' }));
+        g.append(svgEl('text', { x: X0 - 12, y: y(v) + 4, 'text-anchor': 'end' }, v + 'R'));
       }
-      labels.forEach((l, i) => { if (i % 2 === 0 || i === n) g.append(svgEl('text', { x: x(i), y: 250, 'text-anchor': i === 0 ? 'start' : 'middle' }, l)); });
+      labels.forEach((l, i) => { if (showX(i, n, nar ? 3 : 2)) g.append(svgEl('text', { x: x(i), y: 250, 'text-anchor': i === 0 ? 'start' : 'middle' }, l)); });
       svg.append(g);
       [[s1, CMP[0]], [s2, CMP[1]]].forEach(([s, col]) => {
-        const lines = svgEl('g', { 'stroke-width': 3.5, 'stroke-linecap': 'round' });
+        const lines = svgEl('g', { 'stroke-width': nar ? 3 : 3.5, 'stroke-linecap': 'round' });
         for (let i = 1; i <= n; i++) lines.append(svgEl('line', { x1: x(i - 1), y1: y(s[i - 1]), x2: x(i), y2: y(s[i]), stroke: col }));
         svg.append(lines);
         const dots = svgEl('g', { 'stroke-width': 2.5 });
@@ -1871,11 +1908,11 @@ main:focus { outline: none; }
         svg.append(dots);
       });
       const end = svgEl('g', { 'font-family': MONO, 'font-size': 13, 'font-weight': 700 });
-      end.append(svgEl('text', { x: x(n) + 12, y: y(s1[n]) + 4, fill: CMP[0] }, fmtR(s1[n])));
-      end.append(svgEl('text', { x: x(n) + 12, y: y(s2[n]) + 4, fill: CMP[1] }, fmtR(s2[n])));
+      end.append(svgEl('text', { x: x(n) + (nar ? 8 : 12), y: y(s1[n]) + 4, fill: CMP[0] }, fmtR(s1[n])));
+      end.append(svgEl('text', { x: x(n) + (nar ? 8 : 12), y: y(s2[n]) + 4, fill: CMP[1] }, fmtR(s2[n])));
       svg.append(end);
       svg.setAttribute('aria-label', `R acumulado por mes. 1:${ka}: ${s1.slice(1).join(', ')}. 1:${kb}: ${s2.slice(1).join(', ')}.`);
-    })();
+    }
 
     // account simulator: the real monthly TP/SL applied to the viewer's capital
     const accPeriod = q('accPeriod'), accCap = q('accCap'), accRisk = q('accRisk');
@@ -1890,18 +1927,20 @@ main:focus { outline: none; }
     }
     function drawAccLine(points, B0) {
       const svg = q('accChart'); svg.replaceChildren();
+      const nar = isNarrow(svg), VW = nar ? 340 : 560;
+      svg.setAttribute('viewBox', `0 0 ${VW} 210`);
       const vals = points.map(pt => pt.v), lo0 = Math.min(B0, ...vals), hi0 = Math.max(B0, ...vals);
       const step = niceStep(Math.max(hi0 - lo0, B0 * 0.02)), lo = Math.floor(lo0 / step) * step, hi = Math.ceil(hi0 / step) * step;
-      const X0 = 70, X1 = 548, Y0 = 170, Y1 = 22, last = points.length - 1;
+      const X0 = nar ? 56 : 70, X1 = VW - (nar ? 14 : 12), Y0 = 170, Y1 = 22, last = points.length - 1;
       const x = i => X0 + (X1 - X0) * i / Math.max(1, last), y = v => Y0 - (Y0 - Y1) * (v - lo) / Math.max(1e-9, hi - lo);
-      const g = svgEl('g', { 'font-family': MONO, 'font-size': 11, fill: COL.txt });
+      const g = svgEl('g', { 'font-family': MONO, 'font-size': nar ? 12 : 11, fill: COL.txt });
       for (let v = lo; v <= hi + step / 2; v += step) {
-        g.append(svgEl('line', { x1: X0 - 6, x2: 556, y1: y(v), y2: y(v), stroke: COL.grid }));
-        g.append(svgEl('text', { x: 60, y: y(v) + 4, 'text-anchor': 'end' }, compact(v)));
+        g.append(svgEl('line', { x1: X0 - 6, x2: VW - 4, y1: y(v), y2: y(v), stroke: COL.grid }));
+        g.append(svgEl('text', { x: X0 - 10, y: y(v) + 4, 'text-anchor': 'end' }, compact(v)));
       }
-      g.append(svgEl('line', { x1: X0, x2: 556, y1: y(B0), y2: y(B0), stroke: COL.start, 'stroke-opacity': 0.5, 'stroke-dasharray': '4 4' }));
-      const many = points.length > 9;
-      points.forEach((pt, i) => { if (!many || i % 2 === 0 || i === last) g.append(svgEl('text', { x: x(i), y: 200, 'text-anchor': i === last && last ? 'end' : i === 0 ? 'start' : 'middle' }, pt.label)); });
+      g.append(svgEl('line', { x1: X0, x2: VW - 4, y1: y(B0), y2: y(B0), stroke: COL.start, 'stroke-opacity': 0.5, 'stroke-dasharray': '4 4' }));
+      const many = points.length > (nar ? 6 : 9);
+      points.forEach((pt, i) => { if (!many || showX(i, last, nar ? 3 : 2)) g.append(svgEl('text', { x: x(i), y: 200, 'text-anchor': i === last && last ? 'end' : i === 0 ? 'start' : 'middle' }, pt.label)); });
       svg.append(g);
       let d = `M${x(0)} ${y(points[0].v)}`; points.forEach((pt, i) => { if (i) d += ` L${x(i)} ${y(pt.v)}`; });
       svg.append(svgEl('path', { d: d + ` L${x(last)} ${Y0} L${x(0)} ${Y0} Z`, fill: `url(#${p}-accArea)` }));
@@ -1919,13 +1958,17 @@ main:focus { outline: none; }
     }
     function drawAccBars(B0, end) {
       const svg = q('accChart'); svg.replaceChildren();
-      const max = Math.max(B0, end), W = 330, X0 = 170;
+      const nar = isNarrow(svg), VW = nar ? 340 : 560;
+      svg.setAttribute('viewBox', `0 0 ${VW} 210`);
+      // wide: label column on the left; phone: label above a full-width bar
+      const max = Math.max(B0, end), W = nar ? VW - 104 : 330, X0 = nar ? 4 : 170;
       [['Capital inicial', B0, COL.start], ['Saldo final', end, end >= B0 ? COL.tp : COL.sl]].forEach(([label, v, col], i) => {
-        const top = 44 + i * 74, w = Math.max(3, W * v / max);
-        svg.append(svgEl('text', { x: 4, y: top + 22, fill: COL.fg, 'font-family': 'Barlow, sans-serif', 'font-size': 18, 'font-weight': 700 }, label));
-        svg.append(svgEl('rect', { x: X0, y: top, width: W, height: 34, fill: COL.track }));
-        svg.append(svgEl('rect', { x: X0, y: top, width: w, height: 34, fill: col, 'fill-opacity': i ? 1 : 0.55 }));
-        svg.append(svgEl('text', { x: Math.min(X0 + w + 8, 556), y: top + 23, 'text-anchor': X0 + w + 8 > 470 ? 'end' : 'start', fill: i ? col : COL.fg, 'font-family': MONO, 'font-size': 14, 'font-weight': 700 }, fmtUsd(v)));
+        const top = nar ? 22 + i * 92 : 44 + i * 74, bar = nar ? top + 26 : top, w = Math.max(3, W * v / max);
+        const tx = nar ? X0 + w + 8 : Math.min(X0 + w + 8, 556);
+        svg.append(svgEl('text', { x: 4, y: nar ? top + 16 : top + 22, fill: COL.fg, 'font-family': 'Barlow, sans-serif', 'font-size': nar ? 16 : 18, 'font-weight': 700 }, label));
+        svg.append(svgEl('rect', { x: X0, y: bar, width: W, height: 34, fill: COL.track }));
+        svg.append(svgEl('rect', { x: X0, y: bar, width: w, height: 34, fill: col, 'fill-opacity': i ? 1 : 0.55 }));
+        svg.append(svgEl('text', { x: tx, y: bar + 23, 'text-anchor': !nar && X0 + w + 8 > 470 ? 'end' : 'start', fill: i ? col : COL.fg, 'font-family': MONO, 'font-size': 14, 'font-weight': 700 }, fmtUsd(v)));
       });
       svg.setAttribute('aria-label', `Capital inicial ${fmtUsd(B0)}, saldo final ${fmtUsd(end)}`);
     }
@@ -1954,7 +1997,7 @@ main:focus { outline: none; }
         const bestD = Math.max(...res.map(e => e.d)), worstD = Math.min(...res.map(e => e.d));
         const names = d => res.filter(e => Math.abs(e.d - d) < 0.005).map(e => e.o.name).join(' y ');
         detail = `<div class="acc-table-wrap"><table class="acc-table"><thead><tr><th scope="col">Mes</th><th scope="col">TP</th><th scope="col">SL</th><th scope="col">Resultado</th><th scope="col">Saldo</th></tr></thead><tbody>`
-          + res.map(e => `<tr><td>${e.o.name}</td><td class="pos">${e.o.tp}</td><td class="neg">${e.o.sl}</td><td class="${e.d >= 0 ? 'pos' : 'neg'}">${fmtUsdS(e.d)}</td><td>${fmtUsd(e.bal)}</td></tr>`).join('')
+          + res.map(e => `<tr><td><span class="mfull">${e.o.name}</span><span class="mshort">${e.o.short}</span></td><td class="pos">${e.o.tp}</td><td class="neg">${e.o.sl}</td><td class="${e.d >= 0 ? 'pos' : 'neg'}">${fmtUsdS(e.d)}</td><td>${fmtUsd(e.bal)}</td></tr>`).join('')
           + `</tbody></table></div>`
           + `<div class="acc-rows">${accRow('Mejor mes', `${names(bestD)} ${fmtUsdS(bestD)}`, 'pos')}${accRow('Peor mes', `${names(worstD)} ${fmtUsdS(worstD)}`, worstD >= 0 ? 'pos' : 'neg')}</div>`;
       } else {
@@ -1985,6 +2028,13 @@ main:focus { outline: none; }
     $$('button', q('accMode')).forEach(b => b.addEventListener('click', () => { accMode = b.dataset.mode; $$('button', q('accMode')).forEach(o => o.setAttribute('aria-pressed', String(o === b))); runSim(); }));
     listeners.push(runSim);
     runSim();
+
+    // phones get their own chart layout: redraw when a resize or a rotation crosses that line
+    let wasNarrow = isNarrow(q('curve')), rT = 0;
+    addEventListener('resize', () => {
+      clearTimeout(rT);
+      rT = setTimeout(() => { const nowNarrow = isNarrow(q('curve')); if (nowNarrow === wasNarrow) return; wasNarrow = nowNarrow; showPeriod(period); runSim(); if (z.two) drawCmp(); }, 150);
+    });
   }
 
   const zonesHost = $('#indZones');
@@ -2037,6 +2087,7 @@ main:focus { outline: none; }
     instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>',
     tiktok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.7 2.7 2.5 4.3 5.5 4.6"/></svg>',
     youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.2l5 2.8-5 2.8z" fill="currentColor" stroke="none"/></svg>',
+    facebook: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M15.5 7.5H14a2.5 2.5 0 0 0-2.5 2.5v11M9 13h6"/></svg>',
     tradingview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M16 6h4v4"/></svg>',
   };
   const soc = $('#socGrid');
@@ -2047,7 +2098,7 @@ main:focus { outline: none; }
     if (ok) { el.href = r.url; el.target = '_blank'; el.rel = 'noopener'; }
     el.innerHTML = `<span class="soc-ico" aria-hidden="true">${ICONS[r.id] || ''}</span>
       <h3>${r.nombre}</h3>
-      <span class="handle ${ok ? '' : 'pending'}">${ok ? '@' + r.usuario.replace(/^@/, '') : 'Usuario pendiente'}</span>
+      <span class="handle ${ok ? '' : 'pending'}">${ok ? r.mostrar || '@' + r.usuario.replace(/^@/, '') : 'Usuario pendiente'}</span>
       <p>${r.texto}</p>
       <span class="go">${ok ? 'Seguir' : 'Enlace en camino'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></span>`;
     soc.appendChild(el);
