@@ -98,7 +98,7 @@ p { margin: 0; }
 /* the ELB brush logo: white strokes with a red glow; the RGB-split glitch reuses the logo as a mask */
 .logo { position: relative; display: inline-block; flex: none; line-height: 0; }
 .logo img { display: block; height: 58px; width: auto; margin-block: -4px; filter: drop-shadow(0 0 10px rgba(229, 22, 46, 0.6)); }
-.logo::before, .logo::after { content: ""; position: absolute; inset: 0; opacity: 0; pointer-events: none; -webkit-mask: url(media/elb-logo.png) center / contain no-repeat; mask: url(media/elb-logo.png) center / contain no-repeat; }
+.logo::before, .logo::after { content: ""; position: absolute; inset: 0; opacity: 0; pointer-events: none; -webkit-mask: url(../media/elb-logo.png) center / contain no-repeat; mask: url(../media/elb-logo.png) center / contain no-repeat; }
 .logo::before { background: #ff003c; transform: translate(-2px, 0); }
 .logo::after { background: #00e5ff; transform: translate(2px, 0); }
 .brand:hover .logo::before, .brand:hover .logo::after { opacity: .8; animation: glitch-a .9s steps(2) infinite; }
@@ -150,7 +150,7 @@ footer .logo img { height: 64px; }
   transform: translate(-50%, -50%) perspective(900px) rotateY(var(--ry, -14deg)) rotateX(var(--rx, 6deg));
   transition: transform .6s cubic-bezier(.2, .7, .2, 1);
 }
-.giant-logo { position: absolute; inset: 0; background: linear-gradient(165deg, rgba(255, 110, 128, 0.5), rgba(229, 22, 46, 0.38) 50%, rgba(255, 80, 100, 0.48)); -webkit-mask: url(media/elb-logo.png) center / contain no-repeat; mask: url(media/elb-logo.png) center / contain no-repeat; }
+.giant-logo { position: absolute; inset: 0; background: linear-gradient(165deg, rgba(255, 110, 128, 0.5), rgba(229, 22, 46, 0.38) 50%, rgba(255, 80, 100, 0.48)); -webkit-mask: url(../media/elb-logo.png) center / contain no-repeat; mask: url(../media/elb-logo.png) center / contain no-repeat; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
 .eyebrow { font: 600 13px/1.4 var(--f-mono); color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; display: flex; gap: 10px; align-items: center; }
 .prompt { color: var(--red); }
