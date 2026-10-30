@@ -103,6 +103,11 @@ p { margin: 0; }
 .logo::after { background: #00e5ff; transform: translate(2px, 0); }
 .brand:hover .logo::before, .brand:hover .logo::after { opacity: .8; animation: glitch-a .9s steps(2) infinite; }
 .brand:hover .logo::after { animation-name: glitch-b; }
+/* the nav logo also bursts on its own, every 5s; hovering still gives the continuous glitch */
+.nav .brand .logo::before { opacity: .85; animation: glitch-burst-a 5s steps(1) infinite; }
+.nav .brand .logo::after { opacity: .85; animation: glitch-burst-b 5s steps(1) infinite; }
+.nav .brand:hover .logo::before, .nav .brand:hover .logo::after { opacity: .8; animation: glitch-a .9s steps(2) infinite; }
+.nav .brand:hover .logo::after { animation-name: glitch-b; }
 footer .logo img { height: 64px; }
 .nav-links { display: flex; gap: 20px; margin-left: 12px; }
 .nav-links a { white-space: nowrap; font: 600 14px/1 var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 8px 0; position: relative; }
