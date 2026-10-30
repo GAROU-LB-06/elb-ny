@@ -715,6 +715,10 @@ main:focus { outline: none; }
 .cat-name { display: flex; align-items: center; gap: 14px; color: var(--fg); text-decoration: none; }
 .cat-name .logo img { height: clamp(64px, 7vw, 84px); }
 .cat-name .brand-ny { font-size: clamp(15px, 1.6vw, 18px); letter-spacing: 0.14em; line-height: 1.15; text-transform: uppercase; }
+/* the RGB-split burst every 4.2s, as the catalog logo always had; neighbouring cards are offset so they don't fire together */
+.cat-name .logo::before { opacity: .85; animation: glitch-burst-a 4.2s steps(1) infinite; }
+.cat-name .logo::after { opacity: .85; animation: glitch-burst-b 4.2s steps(1) infinite; }
+.cat-card:nth-child(2n) .cat-name .logo::before, .cat-card:nth-child(2n) .cat-name .logo::after { animation-delay: -2.1s; }
 .cat-name:hover .logo::before, .cat-name:hover .logo::after { opacity: .8; animation: glitch-a .9s steps(2) infinite; }
 .cat-name:hover .logo::after { animation-name: glitch-b; }
 .cat-sub { font: 600 13px/1.4 var(--f-mono); color: var(--muted); }
